@@ -1,5 +1,6 @@
 import * as PIXI from "pixi.js";
 import { Assets, AssetsIter } from "@/config";
+import Scroller from "@/scripts/class/background/scroller";
 
 export default class Game {
   /**
@@ -19,6 +20,16 @@ export default class Game {
    * 画布的高度
    */
   height: number;
+
+  /**
+   * 加载的资源
+   */
+  assets: PIXI.Loader | undefined;
+
+  /**
+   * 视差滚动
+   */
+  scroller: Scroller | undefined;
 
   constructor({
     view,
@@ -41,7 +52,9 @@ export default class Game {
       backgroundColor: 0xf1f3f4,
     });
     // 资源加载完成事件监听
-    this.loader.onComplete.add(this.loaderComplete);
+    this.loader.onComplete.add((loader) => {
+      this.loaderComplete(loader);
+    });
     // 将配置的资源载入加载器
     for (const iterator of Object.values<AssetsIter>(assets)) {
       this.loader.add(iterator.name, iterator.url);
@@ -58,5 +71,9 @@ export default class Game {
    */
   private loaderComplete(loader: PIXI.Loader) {
     log("loader assets complete", loader);
+    // 保存资源
+    this.assets = loader;
+    // 背景视差滚动
+    this.scroller = new Scroller(this.app, this.assets);
   }
 }

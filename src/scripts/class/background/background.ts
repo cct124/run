@@ -25,7 +25,7 @@ export default class Background extends TilingSprite {
   constructor(
     app: PIXI.Application,
     texture: PIXI.Texture,
-    DELTA_X = -0.064,
+    DELTA_X = 0,
     px = 0,
     py = 0
   ) {
@@ -35,11 +35,19 @@ export default class Background extends TilingSprite {
     app.stage.addChild(this);
   }
 
+  /**
+   * 更新位置
+   * @returns
+   */
   update(): this {
     this.tilePosition.x += this.DELTA_X;
     return this;
   }
 
+  /**
+   * 设置视口位置
+   * @param newViewportX
+   */
   setViewportX(newViewportX: number): void {
     const distanceTravelled = newViewportX - this.viewportX;
     this.viewportX = newViewportX;
