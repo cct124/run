@@ -1,6 +1,6 @@
 import { config, WallStep } from "@/config";
 import * as PIXI from "pixi.js";
-import Step from "../walls/step";
+import Walls from "../walls/walls";
 import Far from "./far";
 import Mid from "./mid";
 
@@ -17,6 +17,9 @@ export default class Scroller {
    */
   viewportX = 0;
   viewportSpeed: number;
+  move = false;
+  walls: Walls;
+
   constructor(app: PIXI.Application, assets: PIXI.Loader, viewportSpeed = 5) {
     this.app = app;
     this.assets = assets;
@@ -34,10 +37,15 @@ export default class Scroller {
       this.assets.resources[config.assets.mid.name].texture!
     );
     // 移动视口
-    this.app.ticker.add((dt) => this.update(dt));
+    // this.app.ticker.add((dt) => this.update(dt));
 
-    const edge = new Step(WallStep.step_1, this.assets);
-    this.app.stage.addChild(edge);
+    this.walls = new Walls(config.walls, this.assets, this);
+    this.walls.x = 0;
+    this.walls.y = 0;
+    this.app.stage.addChild(this.walls);
+
+    // const edge = new Step(WallStep.step_1, this.assets);
+    // this.app.stage.addChild(edge);
 
     // const graphics = new PIXI.Graphics();
     // graphics.alpha = 0.5;
@@ -60,8 +68,10 @@ export default class Scroller {
    */
   setViewportX(viewportX: number): void {
     this.viewportX = viewportX;
+    // console.log(Math.ceil(this.viewportX / 64));
     this.far.setViewportX(this.viewportX);
     this.mid.setViewportX(this.viewportX);
+    this.walls.setViewportX(this.viewportX);
   }
 
   /**

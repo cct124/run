@@ -1,5 +1,6 @@
 import * as PIXI from "pixi.js";
-import { WallStep, config } from "@/config";
+import { WallTextures, config } from "@/config";
+import WallItem from "./wallItem";
 
 interface navitePoint {
   highlands: Point;
@@ -8,7 +9,10 @@ interface navitePoint {
 }
 type Point = [number, number][];
 
-export default class Step extends PIXI.Sprite {
+/**
+ * 台阶
+ */
+export default class Step extends WallItem {
   left: navitePoint = {
     highlands: [
       [0, 7],
@@ -59,15 +63,20 @@ export default class Step extends PIXI.Sprite {
    * 边缘
    */
   edge: Point = [];
-  type: WallStep;
+  type: WallTextures;
   /**
    * 左右翻转
    */
   direction: boolean;
 
-  constructor(type: WallStep, assets: PIXI.Loader, direction = true) {
+  constructor(
+    type: WallTextures,
+    mapType: number,
+    assets: PIXI.Loader,
+    direction = true
+  ) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    super(assets.resources[config.assets.wall.name].textures![type]);
+    super(mapType, assets.resources[config.assets.wall.name].textures![type]);
     this.direction = direction;
     if (this.direction) {
       this.highlands = this.left.highlands;
