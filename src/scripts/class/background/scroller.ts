@@ -1,4 +1,5 @@
 import { config, WallStep } from "@/config";
+import { MAP } from "@/config/map";
 import * as PIXI from "pixi.js";
 import Walls from "../walls/walls";
 import Far from "./far";
@@ -17,7 +18,6 @@ export default class Scroller {
    */
   viewportX = 0;
   viewportSpeed: number;
-  move = false;
   walls: Walls;
 
   constructor(app: PIXI.Application, assets: PIXI.Loader, viewportSpeed = 5) {
@@ -39,9 +39,7 @@ export default class Scroller {
     // 移动视口
     // this.app.ticker.add((dt) => this.update(dt));
 
-    this.walls = new Walls(config.walls, this.assets, this);
-    this.walls.x = 0;
-    this.walls.y = 0;
+    this.walls = new Walls(MAP, this.assets, this);
     this.app.stage.addChild(this.walls);
 
     // const edge = new Step(WallStep.step_1, this.assets);

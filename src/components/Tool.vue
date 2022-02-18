@@ -26,7 +26,7 @@ export default class Tool extends Vue.with(
   mousedown = false;
   private move() {
     this.mousedown = !this.mousedown;
-    if (this.game.scroller) this.game.scroller.move = this.mousedown;
+    this.game.move = this.mousedown;
   }
 }
 </script>

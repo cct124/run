@@ -30,11 +30,16 @@ export default class Edge extends WallItem {
   constructor(
     type: WallTextures,
     mapType: number,
+    nY: number,
     assets: PIXI.Loader,
     direction = true
   ) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    super(mapType, assets.resources[config.assets.wall.name].textures![type]);
+    super(
+      mapType,
+      nY,
+      assets.resources[config.assets.wall.name].textures![type]
+    );
     this.direction = direction;
     this.type = type;
     this.ground = this.direction ? this.leftGround : this.rightGround;

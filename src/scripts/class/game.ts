@@ -1,8 +1,11 @@
 import * as PIXI from "pixi.js";
-import { Assets, AssetsIter } from "@/config";
+import { Assets, AssetsIter, config } from "@/config";
 import Scroller from "@/scripts/class/background/scroller";
+import Player from "@/scripts/class/player";
+import Spineboy from "./player/Spineboy";
 
 export default class Game {
+  debug = config.debug;
   /**
    * 游戏资源加载对象
    */
@@ -26,10 +29,14 @@ export default class Game {
    */
   assets: PIXI.Loader | undefined;
 
+  move = false;
+
   /**
    * 视差滚动
    */
   scroller: Scroller | undefined;
+
+  palyer: Player | undefined;
 
   constructor({
     view,
@@ -75,5 +82,18 @@ export default class Game {
     this.assets = loader;
     // 背景视差滚动
     this.scroller = new Scroller(this.app, this.assets);
+
+    this.palyer = new Spineboy(this.app, this.assets);
+
+    this.app.ticker.add(() => {
+      if (this.palyer && this.move) {
+        const [x, y] = this.palyer.offset(
+          this.palyer.spineData.x,
+          this.palyer.spineData.y
+        );
+        this.palyer.spineData.x = x;
+        this.palyer.spineData.y = y;
+      }
+    });
   }
 }

@@ -1,6 +1,6 @@
 <template>
   <div class="container relative" ref="container">
-    <Tool :game="game" v-if="init"></Tool>
+    <Tool :game="game" v-if="init && game.debug"></Tool>
     <canvas class="canvas" ref="canvas"></canvas>
   </div>
 </template>
@@ -20,6 +20,7 @@ import { config } from "../config";
 export default class GameComponent extends Vue {
   game: Game | undefined;
   init = false;
+
   mounted(): void {
     const container = this.$refs.container as HTMLElement;
     const canvas = this.$refs.canvas as HTMLCanvasElement;

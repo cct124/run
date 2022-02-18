@@ -1,4 +1,4 @@
-import { Decoration, WallMap, Window } from "@/config";
+import { config, Decoration, WallMap, Window } from "@/config";
 import { genArr } from "@/scripts/utils";
 import * as PIXI from "pixi.js";
 import Edge from "./edge";
@@ -54,21 +54,21 @@ export default class WallsPool {
    */
   mapWall(index: number): WallItem | undefined {
     if ([...Window, ...Decoration].includes(index)) {
-      return new Item(WallMap[index], index, this.assets);
+      return new Item(WallMap[index], index, config.wallDefY, this.assets);
     }
     switch (index) {
       case 3:
-        return new Step(WallMap[3], index, this.assets);
+        return new Step(WallMap[3], index, config.wallDefY, this.assets);
       case 4:
-        return new Step(WallMap[4], index, this.assets, false);
+        return new Step(WallMap[4], index, config.wallDefY, this.assets, false);
       case 5:
-        return new Edge(WallMap[5], index, this.assets);
+        return new Edge(WallMap[5], index, config.wallDefY, this.assets);
       case 6:
-        return new Edge(WallMap[6], index, this.assets, false);
+        return new Edge(WallMap[6], index, config.wallDefY, this.assets, false);
       case 7:
-        return new Edge(WallMap[7], index, this.assets);
+        return new Edge(WallMap[7], index, config.wallDefY, this.assets);
       case 8:
-        return new Edge(WallMap[8], index, this.assets, false);
+        return new Edge(WallMap[8], index, config.wallDefY, this.assets, false);
       default:
         break;
     }

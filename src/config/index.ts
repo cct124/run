@@ -1,7 +1,11 @@
 export interface Config {
+  debug: boolean;
   assets: Assets;
   wallItemWidth: number;
-  walls: number[][];
+  wallDefY: number;
+  palyer: {
+    scale: number;
+  };
 }
 
 export interface AssetsIter {
@@ -13,10 +17,12 @@ export interface Assets {
   far: AssetsIter;
   mid: AssetsIter;
   wall: AssetsIter;
+  spineboy: AssetsIter;
   [s: string]: AssetsIter;
 }
 
 export const config: Config = {
+  debug: true,
   assets: {
     far: {
       name: "far",
@@ -30,39 +36,16 @@ export const config: Config = {
       name: "wall",
       url: "./assets/wall.json",
     },
+    spineboy: {
+      name: "spineboy",
+      url: "./assets/spineboy-pro.json",
+    },
   },
   wallItemWidth: 64,
-  walls: [
-    [5, 1, 9, 2, 1, 9, 10, 10, 11, 6],
-    [0, 0],
-    [5, 1, 9, 2, 1, 9, 10, 10, 11, 6],
-    [0, 0],
-    [5, 1, 9, 2, 1, 9, 10, 10, 11, 6],
-    [0, 0],
-    [5, 1, 9, 2, 1, 9, 10, 10, 11, 6],
-    [0, 0],
-    [5, 1, 9, 2, 1, 9, 10, 10, 11, 6],
-    [0, 0],
-    [5, 1, 9, 2, 1, 9, 10, 10, 11, 6],
-    [0, 0],
-    [5, 1, 9, 2, 1, 9, 10, 10, 11, 6],
-    [0, 0],
-    [5, 1, 9, 2, 1, 9, 10, 10, 11, 6],
-    [0, 0],
-    [5, 1, 9, 2, 1, 9, 10, 10, 11, 6],
-    [0, 0],
-    [5, 1, 9, 2, 1, 9, 10, 10, 11, 6],
-    [0, 0],
-    [5, 1, 9, 2, 1, 9, 10, 10, 11, 6],
-    [0, 0],
-    [5, 1, 9, 2, 1, 9, 10, 10, 11, 6],
-    [0, 0],
-    [5, 1, 9, 2, 1, 9, 10, 10, 11, 6],
-    [0, 0],
-    [5, 1, 9, 2, 1, 9, 10, 10, 11, 6],
-    [0, 0],
-    [5, 1, 9, 2, 1, 9, 10, 10, 11, 6],
-  ],
+  wallDefY: 200,
+  palyer: {
+    scale: 0.2,
+  },
 };
 
 /**
@@ -134,4 +117,21 @@ export const WallMap: { [key: number]: WallTextures } = {
   9: WallTextures.decoration_1,
   10: WallTextures.decoration_2,
   11: WallTextures.decoration_3,
+};
+
+export interface Physics {
+  /**
+   * 空气密度
+   */
+  RHO: number;
+
+  /**
+   * 重力加速度
+   */
+  AG: number;
+}
+
+export const PHYSICS: Physics = {
+  AG: 9.81,
+  RHO: 1.22,
 };
