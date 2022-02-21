@@ -56,7 +56,7 @@ export default class Game extends Observer<GameChannel, GameEvent> {
 
   palyer: Player | undefined;
 
-  debugObject: Debug | undefined;
+  debugModules: Debug | undefined;
 
   constructor({
     view,
@@ -109,7 +109,7 @@ export default class Game extends Observer<GameChannel, GameEvent> {
     this.scroller = new Scroller(this.app, this.assets);
     this.palyer = new Spineboy(this.app, this.assets);
     if (this.debug)
-      this.debugObject = new Debug(this, this.scroller, this.palyer);
+      this.debugModules = new Debug(this, this.scroller, this.palyer);
     this.send(GameChannel.init, {
       event: GameChannel.init,
       target: this,

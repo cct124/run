@@ -22,6 +22,10 @@ export default class WallItem extends PIXI.Sprite {
     this.mapType = mapType;
   }
 
+  /**
+   * 获取碰撞点
+   * @returns [0]左碰撞点，[1]右碰撞点
+   */
   getPoint(): [number, number][] {
     return [[this.x, this.y]];
   }

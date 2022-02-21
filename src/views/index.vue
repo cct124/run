@@ -6,9 +6,9 @@
 </template>
 
 <script lang="ts">
-import { Options, Vue, setup } from "vue-class-component";
+import { Options, Vue } from "vue-class-component";
 import Game, { GameChannel } from "@/scripts/class/game";
-import Tool from "@/components/Tool.vue";
+import Tool from "@/components/tool/index.vue";
 import { Adaptation } from "@/scripts/utils/adaptation";
 import { config } from "../config";
 

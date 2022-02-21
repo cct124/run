@@ -2,33 +2,45 @@
 import * as PIXI from "pixi.js";
 import Walls, { WallsChannel } from "../walls/walls";
 import Debug from "./index";
+import Module from "./module";
 
-export default class DebugWalls {
+export default class DebugWalls extends Module {
   debug: Debug;
   walls: Walls;
   container = new PIXI.Container();
+  clearListen: () => boolean;
   constructor(debug: Debug) {
+    super();
     this.debug = debug;
     this.walls = this.debug.game.scroller!.walls;
     this.debug.container.addChild(this.container);
-    console.log(this.debug.container.getChildIndex(this.container));
+    this.clearListen = this.walls.listen(WallsChannel.update, () =>
+      this.handleWallsGround()
+    );
     this.handleWallsGround();
   }
 
   /**
    * 处理地面边界
    */
-  handleWallsGround() {
-    this.walls.listen(WallsChannel.update, () => {
-      for (
-        let index = this.walls.leftIndex;
-        index <= this.walls.rightIndex;
-        index++
-      ) {
-        if (this.walls.wallsMap[index].sprites.size !== 0) {
-          this.container.addChild(this.walls.wallsMap[index].groundLineDraw());
-        }
+  private handleWallsGround() {
+    for (
+      let index = this.walls.leftIndex;
+      index <= this.walls.rightIndex;
+      index++
+    ) {
+      if (this.walls.wallsMap[index].sprites.size !== 0) {
+        this.container.addChild(this.walls.wallsMap[index].groundLineDraw());
       }
-    });
+    }
+  }
+
+  /**
+   * 清除碰撞线
+   */
+  clear(): boolean {
+    this.debug.container.removeChild(this.container);
+    this.clearListen();
+    return true;
   }
 }
