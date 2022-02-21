@@ -6,8 +6,8 @@
 </template>
 
 <script lang="ts">
-import { Options, Vue } from "vue-class-component";
-import Game from "@/scripts/class/game";
+import { Options, Vue, setup } from "vue-class-component";
+import Game, { GameChannel } from "@/scripts/class/game";
 import Tool from "@/components/Tool.vue";
 import { Adaptation } from "@/scripts/utils/adaptation";
 import { config } from "../config";
@@ -30,8 +30,10 @@ export default class GameComponent extends Vue {
       height: 375,
       assets: config.assets,
     });
+    this.game.listen(GameChannel.init, () => {
+      this.init = true;
+    });
     this.adaptation(container, canvas);
-    this.init = true;
   }
 
   /**

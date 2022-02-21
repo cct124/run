@@ -3,7 +3,7 @@ import { GameMap } from "@/config/map";
 import * as PIXI from "pixi.js";
 import Scroller from "../background/scroller";
 import Observer from "./observer";
-import Wall from "./wall";
+import Wall, { WallChannel } from "./wall";
 import WallItem from "./wallItem";
 import WallsPool from "./wallsPool";
 
@@ -64,7 +64,12 @@ export default class Walls extends Observer<WallsChannel, WallsEvent> {
   leftIndex = 0;
   rightIndex = 0;
 
-  constructor(walls: GameMap[], assets: PIXI.Loader, scroller: Scroller) {
+  constructor(
+    container: PIXI.Container,
+    walls: GameMap[],
+    assets: PIXI.Loader,
+    scroller: Scroller
+  ) {
     super();
     this.walls = walls;
     this.assets = assets;
@@ -79,6 +84,7 @@ export default class Walls extends Observer<WallsChannel, WallsEvent> {
       Math.ceil(this.scroller.app.view.width / config.wallItemWidth) + 1;
     this.createWall();
     this.setViewportX(0);
+    container.addChild(this);
   }
 
   /**
@@ -141,22 +147,25 @@ export default class Walls extends Observer<WallsChannel, WallsEvent> {
       const t = this.wallsIndex.findIndex((w) => i < w);
       const ti = this.walls[t].walls.length - (this.wallsIndex[t] - i);
       // 获取当前墙体索引值
-      const index = this.wallsMap[t].getWallIndex(ti);
-
+      const wall = this.wallsMap[t];
+      const index = wall.getWallIndex(ti);
       /**
        * 判断当前墙体项是否已创建，没有将创建墙体，有将移动墙体
        */
       if (!this.viewportSpriteMap.has(i) && index !== 0) {
-        const sprite = this.wallsMap[t].getCurSprite(index);
+        const sprite = wall.getCurSprite(index);
         if (sprite) {
           sprite.position.x = firstX + sliceIndex * config.wallItemWidth;
           this.addChild(sprite);
           this.viewportSpriteMap.set(i, sprite);
+          wall.updateLineGround(sprite);
         }
       } else {
         const sprite = this.viewportSpriteMap.get(i);
-        if (sprite)
+        if (sprite) {
           sprite.position.x = firstX + sliceIndex * config.wallItemWidth;
+          wall.updateLineGround(sprite);
+        }
       }
     }
 
@@ -165,10 +174,6 @@ export default class Walls extends Observer<WallsChannel, WallsEvent> {
       this.prevViewportSliceX,
       this.wallsMap[this.leftIndex]
     );
-
-    for (let index = this.leftIndex; index <= this.rightIndex; index++) {
-      this.wallsMap[index].updateGround();
-    }
 
     /**
      * 位置更新事件
@@ -201,6 +206,9 @@ export default class Walls extends Observer<WallsChannel, WallsEvent> {
         this.removeChild(sprite);
         this.wallPool.add(sprite.mapType, sprite);
         this.viewportSpriteMap.delete(i);
+        if (wall.sprites.size === 0) {
+          wall.clear();
+        }
       }
     }
   }

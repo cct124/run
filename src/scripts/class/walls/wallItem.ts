@@ -6,7 +6,11 @@ import * as PIXI from "pixi.js";
 export default class WallItem extends PIXI.Sprite {
   mapType: number;
   nY: number;
-  ground: [number, number][] = [];
+  rectGround: [number, number][][] = [];
+  rectWall: [number, number][][] = [];
+  step = false;
+  edge = false;
+  direction = false;
 
   constructor(
     mapType: number,
@@ -16,5 +20,9 @@ export default class WallItem extends PIXI.Sprite {
     super(texture);
     this.nY = nY;
     this.mapType = mapType;
+  }
+
+  getPoint(): [number, number][] {
+    return [[this.x, this.y]];
   }
 }

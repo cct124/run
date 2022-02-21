@@ -5,7 +5,7 @@ import WallItem from "./wallItem";
 interface navitePoint {
   highlands: Point;
   lowland: Point;
-  edge: Point;
+  edgePoint: Point;
 }
 type Point = [number, number][];
 
@@ -26,7 +26,7 @@ export default class Step extends WallItem {
       [64, 128],
       [10, 128],
     ],
-    edge: [
+    edgePoint: [
       [10, 7],
       [10, 128],
     ],
@@ -45,9 +45,9 @@ export default class Step extends WallItem {
       [56, 128],
       [0, 128],
     ],
-    edge: [
-      [56, 7],
+    edgePoint: [
       [56, 128],
+      [56, 7],
     ],
   };
 
@@ -62,12 +62,14 @@ export default class Step extends WallItem {
   /**
    * 边缘
    */
-  edge: Point = [];
+  edgePoint: Point = [];
   type: WallTextures;
   /**
    * 左右翻转
    */
   direction: boolean;
+  step = true;
+  offsetY = (this.left.highlands[2][1] - this.left.highlands[1][1]) / 2;
 
   constructor(
     type: WallTextures,
@@ -76,24 +78,43 @@ export default class Step extends WallItem {
     assets: PIXI.Loader,
     direction = true
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     super(
       mapType,
       nY,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       assets.resources[config.assets.wall.name].textures![type]
     );
     this.direction = direction;
     if (this.direction) {
       this.highlands = this.left.highlands;
       this.lowland = this.left.lowland;
-      this.edge = this.left.edge;
+      this.edgePoint = this.left.edgePoint;
+      this.rectGround = [this.highlands, this.edgePoint, this.lowland];
     } else {
       this.anchor.x = 1;
       this.scale.x = -1;
       this.highlands = this.right.highlands;
       this.lowland = this.right.lowland;
-      this.edge = this.right.edge;
+      this.edgePoint = this.right.edgePoint;
+      this.rectGround = [this.lowland, this.edgePoint, this.highlands];
     }
     this.type = type;
+  }
+
+  getPoint(): [number, number][] {
+    return [
+      [
+        this.rectGround[1][0][0] + this.x,
+        this.rectGround[1][0][1] +
+          this.y +
+          (this.direction ? this.offsetY : -this.offsetY),
+      ],
+      [
+        this.rectGround[1][1][0] + this.x,
+        this.rectGround[1][1][1] +
+          this.y +
+          (this.direction ? -this.offsetY : +this.offsetY),
+      ],
+    ];
   }
 }

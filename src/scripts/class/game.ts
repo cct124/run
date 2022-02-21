@@ -3,8 +3,26 @@ import { Assets, AssetsIter, config } from "@/config";
 import Scroller from "@/scripts/class/background/scroller";
 import Player from "@/scripts/class/player";
 import Spineboy from "./player/Spineboy";
+import Debug from "./debug";
+import Observer from "./observer";
 
-export default class Game {
+export enum GameChannel {
+  /**
+   * 资源加载完成
+   */
+  loaderComplete = "loaderComplete",
+  /**
+   * 游戏初始化完成
+   */
+  init = "init",
+}
+
+export interface GameEvent {
+  event: GameChannel;
+  target: Game;
+}
+
+export default class Game extends Observer<GameChannel, GameEvent> {
   debug = config.debug;
   /**
    * 游戏资源加载对象
@@ -38,6 +56,8 @@ export default class Game {
 
   palyer: Player | undefined;
 
+  debugObject: Debug | undefined;
+
   constructor({
     view,
     width,
@@ -49,6 +69,7 @@ export default class Game {
     height: number;
     assets: Assets;
   }) {
+    super();
     this.view = view;
     this.width = width;
     this.height = height;
@@ -77,23 +98,21 @@ export default class Game {
    * @param loader
    */
   private loaderComplete(loader: PIXI.Loader) {
-    log("loader assets complete", loader);
+    this.send(GameChannel.loaderComplete, {
+      event: GameChannel.loaderComplete,
+      target: this,
+    });
+    // log("loader assets complete", loader);
     // 保存资源
     this.assets = loader;
     // 背景视差滚动
     this.scroller = new Scroller(this.app, this.assets);
-
     this.palyer = new Spineboy(this.app, this.assets);
-
-    this.app.ticker.add(() => {
-      if (this.palyer && this.move) {
-        const [x, y] = this.palyer.offset(
-          this.palyer.spineData.x,
-          this.palyer.spineData.y
-        );
-        this.palyer.spineData.x = x;
-        this.palyer.spineData.y = y;
-      }
+    if (this.debug)
+      this.debugObject = new Debug(this, this.scroller, this.palyer);
+    this.send(GameChannel.init, {
+      event: GameChannel.init,
+      target: this,
     });
   }
 }

@@ -22,11 +22,13 @@ export default class Edge extends WallItem {
     [46, 64],
     [0, 64],
   ];
+  offsetY = (this.leftGround[2][1] - this.leftGround[1][1]) / 2;
   /**
    * 地面碰撞点
    */
-  ground: [number, number][];
+  rectGround: [number, number][][];
   type: WallTextures;
+  edge = true;
   constructor(
     type: WallTextures,
     mapType: number,
@@ -34,18 +36,31 @@ export default class Edge extends WallItem {
     assets: PIXI.Loader,
     direction = true
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     super(
       mapType,
       nY,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       assets.resources[config.assets.wall.name].textures![type]
     );
     this.direction = direction;
     this.type = type;
-    this.ground = this.direction ? this.leftGround : this.rightGround;
+    this.rectGround = [this.direction ? this.leftGround : this.rightGround];
     if (!this.direction) {
       this.anchor.x = 1;
       this.scale.x = -1;
     }
+  }
+
+  getPoint(): [number, number][] {
+    return [
+      [
+        this.x + this.rectGround[0][0][0],
+        this.y + this.rectGround[0][0][1] + this.offsetY,
+      ],
+      [
+        this.x + this.rectGround[0][1][0],
+        this.y + this.rectGround[0][1][1] + this.offsetY,
+      ],
+    ];
   }
 }

@@ -19,7 +19,7 @@ export default class Tool extends Vue.with(
   mounted(): void {
     this.game.app.ticker.add(() => {
       if (this.game.scroller && this.mousedown)
-        this.game.scroller.moveViewportXBy(10);
+        this.game.scroller.moveViewportXBy(5);
     });
   }
 

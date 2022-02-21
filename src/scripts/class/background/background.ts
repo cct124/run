@@ -1,4 +1,4 @@
-import PIXI from "pixi.js";
+import * as PIXI from "pixi.js";
 import TilingSprite from "./tilingSprite";
 
 /**
@@ -13,6 +13,7 @@ export default class Background extends TilingSprite {
    * 视口位移
    */
   viewportX = 0;
+  container = new PIXI.Container();
 
   /**
    * 实例化背景
@@ -24,12 +25,15 @@ export default class Background extends TilingSprite {
    */
   constructor(
     app: PIXI.Application,
+    container: PIXI.Container,
     texture: PIXI.Texture,
     DELTA_X = 0,
     px = 0,
     py = 0
   ) {
     super(texture, app.screen.width, app.screen.height);
+    this.container.addChild(this);
+    container.addChild(this.container);
     this.DELTA_X = DELTA_X;
     this.position.set(px, py);
     app.stage.addChild(this);

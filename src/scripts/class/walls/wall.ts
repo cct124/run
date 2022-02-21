@@ -1,41 +1,74 @@
-import { config } from "@/config";
+import { config, Step } from "@/config";
 import * as PIXI from "pixi.js";
+import Observer from "../observer";
 import WallItem from "./wallItem";
 import WallsPool from "./wallsPool";
+
+export enum WallChannel {
+  /**
+   * 清除资源
+   */
+  clear = "clear",
+}
+
+export interface WallEvent {
+  event: WallChannel;
+  target: Wall;
+}
 
 /**
  * 墙体对象
  */
-export default class Wall {
+export default class Wall extends Observer<WallChannel, WallEvent> {
   id: number;
   walls: number[] = [];
   nY = 0;
-  step: number | undefined;
+  step;
   sprites = new Set<WallItem>();
-  stepIndex = 0;
+  steps: {
+    index: number;
+    type: number;
+    offsetY: number;
+    nY: number;
+    render: boolean;
+  }[] = [];
   stepLeft: number[] = [];
   stepRight: number[] = [];
   wallPool: WallsPool;
   curIndex = 0;
   curTextureIndex = 0;
-  ground: [number, number][][] = [];
+  rectGround: [number, number][][] = [];
+  lineGround: [number, number][] = [];
+  graphics: PIXI.Graphics | undefined;
+  groundOffestX = 0;
+  groundOffestY = 6;
+  lineGroundComplete = false;
 
   constructor(
     id: number,
     wallPool: WallsPool,
     walls: number[],
     nY = config.wallDefY,
-    step: number | undefined
+    step = false
   ) {
+    super();
     this.id = id;
     this.wallPool = wallPool;
     this.walls = walls;
     this.step = step;
     this.nY = nY;
-    if (this.step !== undefined) {
-      this.stepIndex = this.walls.findIndex((n) => n === this.step);
-      this.stepLeft = this.walls.slice(0, this.stepIndex + 1);
-      this.stepRight = this.walls.slice(this.stepIndex + 1);
+    if (this.step) {
+      this.steps = this.walls
+        .map((type, index) => ({ index, type }))
+        .filter((wall) => Step.includes(wall.type))
+        .map((wall) => {
+          return {
+            ...wall,
+            offsetY: wall.type === 3 ? 64 : -64,
+            nY: 0,
+            render: false,
+          };
+        });
     }
   }
 
@@ -53,11 +86,25 @@ export default class Wall {
    * @returns
    */
   getCurSpriteY(): number {
-    if (this.step !== undefined) {
-      if (this.step === 3) {
-        return this.curIndex <= this.stepIndex ? this.nY - 64 : this.nY;
+    if (this.step) {
+      const index = this.steps.findIndex((wall) => this.curIndex <= wall.index);
+      // eslint-disable-next-line no-extra-boolean-cast
+      if (!!~index) {
+        const step = this.steps[index];
+        const preStep = this.steps[index - 1];
+        // console.log(this.curIndex, step, preStep);
+        step.nY = preStep ? preStep.nY + preStep.offsetY : this.nY;
+
+        if (this.curIndex === step.index) {
+          step.render = true;
+          return step.type === 3 ? step.nY : step.nY + step.offsetY;
+        }
+
+        return step.nY;
       } else {
-        return this.curIndex < this.stepIndex ? this.nY : this.nY - 64;
+        const step = this.steps[this.steps.length - 1];
+
+        return step ? step.nY + step.offsetY : this.nY;
       }
     }
     return this.nY;
@@ -88,20 +135,46 @@ export default class Wall {
     return sprite;
   }
 
-  updateGround(): void {
+  /**
+   * 更新墙体碰撞线
+   */
+  updateLineGround(sprite: WallItem): void {
+    this.lineGround = [];
+    const sprites = [...this.sprites];
+    const l = sprites[0];
+    this.lineGround.push(l.getPoint()[0]);
+    const r = sprite;
+    if (this.sprites.size > 1) {
+      for (const [, iter] of sprites.entries()) {
+        if (iter.step) {
+          this.lineGround.push(...iter.getPoint());
+        }
+      }
+    }
+    this.lineGround.push(r.getPoint()[1]);
+    this.lineGround.push([r.x + r.width, 375]);
+    this.lineGround.push([l.x, 375]);
+  }
+
+  /**
+   * 更新墙体碰撞矩形
+   */
+  updateRectGround(): void {
     if (this.step === undefined) {
-      if (this.sprites.size !== 0) {
+      const len = this.sprites.size - 1;
+      if (len !== -1) {
         const sprites = [...this.sprites];
         const l = sprites[0];
         const r = sprites[sprites.length - 1];
-        const [ltx, lty] = l.ground[0];
-        const [rtx, rty] = r.ground[1];
-        const [rbx, rby] = r.ground[2];
-        const [lbx, lby] = l.ground[3];
-        this.ground[0] = [
+        const [ltx, lty] = l.rectGround[0][0];
+        const [rtx, rty] = r.rectGround[0][1];
+        const [rbx, rby] = r.rectGround[0][2];
+        const [lbx, lby] = l.rectGround[0][3];
+
+        this.rectGround[0] = [
           [ltx + l.x, lty + this.nY],
-          [rtx + this.sprites.size * config.wallItemWidth + l.x, rty + this.nY],
-          [rbx + this.sprites.size * config.wallItemWidth + l.x, rby + this.nY],
+          [rtx + len * config.wallItemWidth + l.x, rty + this.nY],
+          [rbx + len * config.wallItemWidth + l.x, rby + this.nY],
           [lbx + l.x, lby + this.nY],
         ];
 
@@ -119,20 +192,55 @@ export default class Wall {
     return n < 0 ? 0 : n;
   }
 
-  groundDraw(): PIXI.Graphics {
-    const triangle = new PIXI.Graphics();
-    triangle.beginFill(0x9966ff);
-    triangle.drawPolygon([
-      ...this.ground[0][0],
-      ...this.ground[0][1],
-      ...this.ground[0][2],
-      ...this.ground[0][3],
-    ]);
-    triangle.endFill();
-    // triangle.drawCircle(0, 0, 10);
-    // triangle.x = this.ground[0][1][0];
-    // triangle.y = this.ground[0][1][1];
-    // triangle.endFill();
-    return triangle;
+  /**
+   * 绘制墙体可碰撞矩形
+   * @returns
+   */
+  groundRectDraw(): PIXI.Graphics {
+    if (!this.graphics) {
+      this.graphics = new PIXI.Graphics();
+    }
+
+    if (this.step === undefined) {
+      this.graphics.clear();
+      this.graphics.lineStyle(1, 0xf31e67);
+      this.graphics.drawPolygon([
+        ...this.rectGround[0][0],
+        ...this.rectGround[0][1],
+        ...this.rectGround[0][2],
+        ...this.rectGround[0][3],
+      ]);
+      this.graphics.endFill();
+    }
+
+    return this.graphics;
+  }
+
+  /**
+   * 绘制墙体可碰撞线
+   * @returns
+   */
+  groundLineDraw(): PIXI.Graphics {
+    if (!this.graphics) {
+      this.graphics = new PIXI.Graphics();
+    }
+    this.graphics.clear();
+    this.graphics.lineStyle(1, 0xf31e67);
+    const temp = [];
+    for (const iterator of this.lineGround) {
+      temp.push(...iterator);
+      this.graphics.drawPolygon(temp);
+    }
+    this.graphics.endFill();
+
+    return this.graphics;
+  }
+
+  clear(): void {
+    this.lineGround = [];
+    this.send(WallChannel.clear, {
+      event: WallChannel.clear,
+      target: this,
+    });
   }
 }

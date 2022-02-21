@@ -1,7 +1,7 @@
 export interface GameMap {
   nY: number;
   walls: number[];
-  step?: number;
+  step?: boolean;
 }
 
 export default [
@@ -38,8 +38,35 @@ export default [
 
 export const MAP: GameMap[] = [
   {
-    nY: 200,
+    nY: 190,
     walls: [5, 1, 9, 2, 1, 9, 10, 10, 11, 6],
+  },
+  {
+    nY: 0,
+    walls: [0, 0],
+  },
+  {
+    nY: 190,
+    walls: [5, 1, 9, 2, 3, 9, 10, 4, 11, 6],
+    step: true,
+  },
+  {
+    nY: 0,
+    walls: [0, 0],
+  },
+  {
+    nY: 190,
+    walls: [5, 1, 9, 2, 3, 9, 10, 10, 11, 6],
+    step: true,
+  },
+  {
+    nY: 0,
+    walls: [0, 0],
+  },
+  {
+    nY: 190,
+    walls: [5, 1, 9, 2, 4, 9, 10, 10, 11, 6],
+    step: true,
   },
   {
     nY: 0,
@@ -97,7 +124,7 @@ export const MAP: GameMap[] = [
   {
     nY: 190,
     walls: [5, 1, 9, 2, 3, 9, 10, 10, 11, 6],
-    step: 3,
+    step: true,
   },
   {
     nY: 0,
@@ -106,6 +133,6 @@ export const MAP: GameMap[] = [
   {
     nY: 190,
     walls: [5, 1, 9, 2, 4, 9, 10, 10, 11, 6],
-    step: 4,
+    step: true,
   },
 ];

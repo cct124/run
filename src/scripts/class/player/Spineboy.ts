@@ -1,5 +1,4 @@
 import * as PIXI from "pixi.js";
-import { ITrackEntry } from "pixi-spine";
 import { config } from "@/config";
 import Player from "./index";
 
