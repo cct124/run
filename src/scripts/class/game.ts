@@ -108,8 +108,13 @@ export default class Game extends Observer<GameChannel, GameEvent> {
     // 背景视差滚动
     this.scroller = new Scroller(this.app, this.assets);
     this.palyer = new Spineboy(this.app, this.assets);
+
+    /**
+     * 是否开启调试功能
+     */
     if (this.debug)
       this.debugModules = new Debug(this, this.scroller, this.palyer);
+
     this.send(GameChannel.init, {
       event: GameChannel.init,
       target: this,

@@ -82,7 +82,7 @@ export default class Walls extends Observer<WallsChannel, WallsEvent> {
     // 计算屏幕能容纳多少项墙体
     this.VIEWPORT_NUM_SLICES =
       Math.ceil(this.scroller.app.view.width / config.wallItemWidth) + 1;
-    this.createWall();
+    this.createWalls();
     this.setViewportX(0);
     container.addChild(this);
   }
@@ -90,11 +90,11 @@ export default class Walls extends Observer<WallsChannel, WallsEvent> {
   /**
    * 将墙体数据生成墙体对象
    */
-  private createWall() {
+  private createWalls() {
     for (const [i, iter] of this.walls.entries()) {
-      const wall = new Wall(i, this.wallPool, iter.walls, iter.nY, iter.step);
+      // const wall = new Wall(i, this.wallPool, iter.walls, iter.nY, iter.step);
       // 保存墙体对象
-      this.wallsMap.push(wall);
+      // this.wallsMap.push(wall);
       if (this.wallsIndex.length === 0) {
         this.wallsIndex.push(iter.walls.length);
       } else {
@@ -146,8 +146,20 @@ export default class Walls extends Observer<WallsChannel, WallsEvent> {
     ) {
       const t = this.wallsIndex.findIndex((w) => i < w);
       const ti = this.walls[t].walls.length - (this.wallsIndex[t] - i);
-      // 获取当前墙体索引值
+      if (this.wallsMap[t] === undefined) {
+        // 获取当前墙体索引值
+        const wall = new Wall(
+          i,
+          this.wallPool,
+          this.walls[t].walls,
+          this.walls[t].nY,
+          this.walls[t].step
+        );
+        // 保存墙体对象;
+        this.wallsMap.push(wall);
+      }
       const wall = this.wallsMap[t];
+
       const index = wall.getWallIndex(ti);
       /**
        * 判断当前墙体项是否已创建，没有将创建墙体，有将移动墙体
