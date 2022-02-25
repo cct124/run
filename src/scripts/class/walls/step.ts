@@ -13,7 +13,7 @@ type Point = [number, number][];
  * 台阶
  */
 export default class Step extends WallItem {
-  left: navitePoint = {
+  static left: navitePoint = {
     highlands: [
       [0, 7],
       [10, 7],
@@ -32,7 +32,7 @@ export default class Step extends WallItem {
     ],
   };
 
-  right: navitePoint = {
+  static right: navitePoint = {
     highlands: [
       [56, 7],
       [64, 7],
@@ -69,9 +69,10 @@ export default class Step extends WallItem {
    */
   direction: boolean;
   step = true;
-  offsetY = (this.left.highlands[2][1] - this.left.highlands[1][1]) / 2;
+  static offsetY = (Step.left.highlands[2][1] - Step.left.highlands[1][1]) / 2;
 
   constructor(
+    id: number,
     type: WallTextures,
     mapType: number,
     nY: number,
@@ -79,41 +80,44 @@ export default class Step extends WallItem {
     direction = true
   ) {
     super(
+      id,
       mapType,
       nY,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       assets.resources[config.assets.wall.name].textures![type]
     );
     this.direction = direction;
-    if (this.direction) {
-      this.highlands = this.left.highlands;
-      this.lowland = this.left.lowland;
-      this.edgePoint = this.left.edgePoint;
-      this.rectGround = [this.highlands, this.edgePoint, this.lowland];
-    } else {
+    if (!this.direction) {
       this.anchor.x = 1;
       this.scale.x = -1;
-      this.highlands = this.right.highlands;
-      this.lowland = this.right.lowland;
-      this.edgePoint = this.right.edgePoint;
-      this.rectGround = [this.lowland, this.edgePoint, this.highlands];
     }
     this.type = type;
   }
 
-  getPoint(): [number, number][] {
+  static getPoint(direction = true): [number, number][] {
+    let rectGround;
+    if (direction) {
+      rectGround = [
+        this.left.highlands,
+        this.left.edgePoint,
+        this.left.lowland,
+      ];
+    } else {
+      rectGround = [
+        this.right.lowland,
+        this.right.edgePoint,
+        this.right.highlands,
+      ];
+    }
+
     return [
       [
-        this.rectGround[1][0][0] + this.x,
-        this.rectGround[1][0][1] +
-          this.y +
-          (this.direction ? this.offsetY : -this.offsetY),
+        rectGround[1][0][0],
+        rectGround[1][0][1] + (direction ? this.offsetY : -this.offsetY),
       ],
       [
-        this.rectGround[1][1][0] + this.x,
-        this.rectGround[1][1][1] +
-          this.y +
-          (this.direction ? -this.offsetY : +this.offsetY),
+        rectGround[1][1][0],
+        rectGround[1][1][1] + (direction ? -this.offsetY : +this.offsetY),
       ],
     ];
   }

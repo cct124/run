@@ -4,7 +4,11 @@ import Scroller from "@/scripts/class/background/scroller";
 import Player from "@/scripts/class/player";
 import Spineboy from "./player/Spineboy";
 import Debug from "./debug";
-import Observer from "./observer";
+import { Observer } from "./observer";
+import PhysicsEngine from "./physics/PhysicsEngine";
+import { MAP } from "@/config/map";
+import Wall from "./walls/wall";
+import Interactive from "./interactive";
 
 export enum GameChannel {
   /**
@@ -58,6 +62,9 @@ export default class Game extends Observer<GameChannel, GameEvent> {
 
   debugModules: Debug | undefined;
 
+  physicsEngine: PhysicsEngine | undefined;
+  interactive: Interactive | undefined;
+
   constructor({
     view,
     width,
@@ -105,15 +112,29 @@ export default class Game extends Observer<GameChannel, GameEvent> {
     // log("loader assets complete", loader);
     // 保存资源
     this.assets = loader;
+    this.physicsEngine = new PhysicsEngine();
     // 背景视差滚动
-    this.scroller = new Scroller(this.app, this.assets);
-    this.palyer = new Spineboy(this.app, this.assets);
+    this.scroller = new Scroller(this, this.app, this.assets);
+    this.palyer = new Spineboy(
+      this,
+      this.assets,
+      config.palyer.startX,
+      MAP[0].nY + Wall.offsetY,
+      config.palyer.scale
+    );
+
+    this.interactive = new Interactive(this);
 
     /**
      * 是否开启调试功能
      */
     if (this.debug)
-      this.debugModules = new Debug(this, this.scroller, this.palyer);
+      this.debugModules = new Debug(
+        this,
+        this.scroller,
+        this.palyer,
+        this.physicsEngine
+      );
 
     this.send(GameChannel.init, {
       event: GameChannel.init,

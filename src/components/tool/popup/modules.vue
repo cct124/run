@@ -11,7 +11,7 @@
         <van-switch
           v-model="item.checked"
           size="18"
-          @click="switchModule(item)"
+          @click="$emit('switch', item)"
         />
       </template>
     </van-cell>
@@ -19,19 +19,9 @@
 </template>
 
 <script lang="ts">
-import { inject } from "vue";
-import Game from "@/scripts/class/game";
-import { Options, Vue, setup } from "vue-class-component";
+import { Options, Vue, prop } from "vue-class-component";
 import { Switch, Cell, CellGroup } from "vant";
-import { Modules } from "@/scripts/class/debug/index";
-
-interface ModulesItem {
-  name: string;
-  type: Modules;
-  checked: boolean;
-  label?: string;
-}
-
+import { ModulesItem } from "./index.vue";
 @Options({
   components: {
     [Switch.name]: Switch,
@@ -39,54 +29,23 @@ interface ModulesItem {
     [CellGroup.name]: CellGroup,
   },
 })
-export default class ToolModules extends Vue {
-  game = setup<Game>(() => inject("game") as Game);
-
-  modules: ModulesItem[] = [
-    {
-      name: "墙体碰撞线",
-      type: Modules.WallCollisionLine,
-      checked: false,
-      label: "显示碰撞检测的墙体多边形",
-    },
-  ];
-
-  show = false;
-
-  /**
-   * 打开功能选择弹层
-   */
-  open(): void {
-    this.show = true;
+export default class Tools extends Vue.with(
+  class {
+    modules = prop<ModulesItem[]>({ required: true });
   }
-
-  private setting() {
-    this.open();
-  }
-
-  private switchModule(item: ModulesItem) {
-    if (this.game.debugModules) {
-      if (item.checked) {
-        this.game.debugModules.openModules(item.type);
-      } else {
-        this.game.debugModules.closeModules(item.type);
-      }
-    }
-  }
-}
+) {}
 </script>
 <style lang="scss" scoped>
-.tool-popup {
+.tool {
+  z-index: 1;
   position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 30px;
-  color: #ffffff;
-  &::v-deep {
-    .setting-popup {
-      width: 200px;
-      height: 100%;
-    }
+  width: 100vw;
+  height: 100vh;
+
+  .control {
+    position: absolute;
+    left: 0;
+    bottom: 0;
   }
 }
 </style>

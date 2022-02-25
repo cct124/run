@@ -1,5 +1,5 @@
 <template>
-  <div class="tool">
+  <div id="tool" class="tool">
     <Control class="pad-10 w-100vw bx flex-jcfe-aic"></Control>
     <ToolPopup></ToolPopup>
   </div>
@@ -32,6 +32,10 @@ export default class Tool extends Vue.with(
 <style lang="scss" scoped>
 .tool {
   z-index: 1;
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+
   .control {
     position: absolute;
     left: 0;

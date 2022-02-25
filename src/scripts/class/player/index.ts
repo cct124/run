@@ -1,33 +1,44 @@
 import * as PIXI from "pixi.js";
 import { config } from "@/config";
 import { Spine, ITrackEntry } from "pixi-spine";
-import Inertia from "../physics/Inertia";
+import Game from "../game";
+import Matter from "matter-js";
+
 /**
  * 玩家
  */
-export default class Player extends Inertia {
-  scale: number;
+export default class Player extends PIXI.Container {
   spineData: Spine;
-  app: PIXI.Application;
+  game: Game;
+  body: Matter.Body;
+  cw = 0;
+  ch = 0;
 
   constructor(
-    app: PIXI.Application,
+    game: Game,
     loader: PIXI.Loader,
-    scale = 1,
-    mass: number,
-    A: number,
-    cd: number
+    x: number,
+    y: number,
+    scale = 1
   ) {
+    super();
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const spineData = loader.resources[config.assets.spineboy.name].spineData!;
-    super(mass, A, cd);
     this.spineData = new Spine(spineData);
-    this.app = app;
-    this.scale = scale;
-    this.spineData.scale.set(this.scale, this.scale);
-    this.app.stage.addChild(this.spineData);
-    this.spineData.x = 100;
-    this.spineData.y = 240;
+    this.game = game;
+    this.spineData.scale.set(scale, scale);
+    this.addChild(this.spineData);
+    this.x = x;
+    this.y = y;
+    this.cw = this.width / 2;
+    this.ch = this.height / 2;
+    if (this.game.scroller) this.game.scroller.container.addChild(this);
+    this.body = this.createBody();
+    // this.drawBoundary();
+    if (this.game.physicsEngine)
+      Matter.Composite.add(this.game.physicsEngine.world, this.body);
+    this.game.app.ticker.add((dt: number) => this.update(dt));
+    // console.log(this.width, this.height);
   }
 
   /**
@@ -69,5 +80,39 @@ export default class Player extends Inertia {
       loop,
       delay
     );
+  }
+
+  /**
+   * 绘制边界
+   */
+  drawBoundary(): void {
+    const rectangle = new PIXI.Graphics();
+    rectangle.lineStyle(1, 0xff3300, 1);
+    rectangle.drawRect(0, 0, this.width, this.height);
+    rectangle.endFill();
+    rectangle.x = -this.width / 2;
+    rectangle.y = -this.height;
+    this.addChild(rectangle);
+  }
+
+  /**
+   * 创建物理引擎刚体
+   */
+  createBody(): Matter.Body {
+    return Matter.Bodies.rectangle(
+      this.x,
+      this.y - this.height / 2,
+      this.width,
+      this.height
+    );
+  }
+
+  update(dt: number): void {
+    const x = this.body.position.x;
+    const y = this.body.position.y + this.ch;
+    if (this.x !== this.body.position.x || this.y !== y) {
+      this.x = x;
+      this.y = y;
+    }
   }
 }

@@ -2,9 +2,26 @@ export interface Config {
   debug: boolean;
   assets: Assets;
   wallItemWidth: number;
+  wallItemHeight: number;
   wallDefY: number;
   palyer: {
+    startX: number;
     scale: number;
+  };
+  joystick: {
+    x: number;
+    y: number;
+    interactive: boolean;
+    dragArea: {
+      color: number;
+      size: number;
+      alpha: number;
+    };
+    dragTarget: {
+      color: number;
+      size: number;
+      alpha: number;
+    };
   };
 }
 
@@ -42,9 +59,26 @@ export const config: Config = {
     },
   },
   wallItemWidth: 64,
+  wallItemHeight: 256,
   wallDefY: 200,
   palyer: {
+    startX: 150,
     scale: 0.2,
+  },
+  joystick: {
+    x: 100,
+    y: 270,
+    interactive: true,
+    dragArea: {
+      color: 0xffffff,
+      size: 45,
+      alpha: 0.05,
+    },
+    dragTarget: {
+      color: 0xffffff,
+      size: 25,
+      alpha: 0.06,
+    },
   },
 };
 
@@ -100,8 +134,8 @@ export enum WallTextures {
 }
 
 export const Window = [1, 2];
-export const Step = [3, 4];
-export const Edge = [5, 6, 7, 8];
+export const StepIndex = [3, 4];
+export const EdgeIndex = [5, 6, 7, 8];
 export const Decoration = [9, 10, 11];
 
 export const WallMap: { [key: number]: WallTextures } = {

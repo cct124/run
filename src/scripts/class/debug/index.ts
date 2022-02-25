@@ -4,8 +4,14 @@ import Scroller from "@/scripts/class/background/scroller";
 import Player from "@/scripts/class/player";
 import DebugWalls from "./DebugWalls";
 import Module from "./module";
+import DebugMatter from "./DebugMatter";
+import PhysicsEngine from "../physics/PhysicsEngine";
 
 export enum Modules {
+  /**
+   * 墙体碰撞线
+   */
+  MatterTool = "matter_tool",
   /**
    * 墙体碰撞线
    */
@@ -17,17 +23,25 @@ export default class Debug {
   scroller: Scroller;
   player: Player;
   examples: {
+    [Modules.MatterTool]?: Module;
     [Modules.WallCollisionLine]?: Module;
   } = {};
   modules = {
+    [Modules.MatterTool]: DebugMatter,
     [Modules.WallCollisionLine]: DebugWalls,
   };
   container = new PIXI.Container();
-
-  constructor(game: Game, scroller: Scroller, player: Player) {
+  physicsEngine: PhysicsEngine;
+  constructor(
+    game: Game,
+    scroller: Scroller,
+    player: Player,
+    physicsEngine: PhysicsEngine
+  ) {
     this.game = game;
     this.scroller = scroller;
     this.player = player;
+    this.physicsEngine = physicsEngine;
     this.game.app.stage.addChild(this.container);
   }
 
@@ -36,8 +50,10 @@ export default class Debug {
    * @returns
    */
   openModules(name: Modules): Module | undefined {
-    this.examples[name] = new this.modules[name](this);
-    return this.examples[name];
+    if (this.modules[name]) {
+      this.examples[name] = new this.modules[name](this);
+      return this.examples[name];
+    }
   }
 
   /**

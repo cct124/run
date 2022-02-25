@@ -9,7 +9,7 @@ export default class Item extends WallItem {
   /**
    * 地面碰撞点
    */
-  rectGround: [number, number][][] = [
+  static rectGround: [number, number][][] = [
     [
       [0, 6],
       [64, 6],
@@ -18,14 +18,16 @@ export default class Item extends WallItem {
     ],
   ];
   type: WallTextures;
-  offsetY = (this.rectGround[0][2][1] - this.rectGround[0][1][1]) / 2;
+  static offsetY = (Item.rectGround[0][2][1] - Item.rectGround[0][1][1]) / 2;
   constructor(
+    id: number,
     type: WallTextures,
     mapType: number,
     nY: number,
     assets: PIXI.Loader
   ) {
     super(
+      id,
       mapType,
       nY,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -34,16 +36,10 @@ export default class Item extends WallItem {
     this.type = type;
   }
 
-  getPoint(): [number, number][] {
+  static getPoint(): [number, number][] {
     return [
-      [
-        this.x + this.rectGround[0][0][0],
-        this.y + this.rectGround[0][0][1] + this.offsetY,
-      ],
-      [
-        this.x + this.rectGround[0][1][0],
-        this.y + this.rectGround[0][1][1] + this.offsetY,
-      ],
+      [this.rectGround[0][0][0], this.rectGround[0][0][1] + this.offsetY],
+      [this.rectGround[0][1][0], this.rectGround[0][1][1] + this.offsetY],
     ];
   }
 }

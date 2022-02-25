@@ -1,8 +1,13 @@
-import { config, Step } from "@/config";
+import { config, Decoration, Window, StepIndex, EdgeIndex } from "@/config";
 import * as PIXI from "pixi.js";
-import Observer from "../observer";
+import { Observer } from "../observer";
+import Edge from "./edge";
+import Item from "./item";
+import Step from "./step";
 import WallItem from "./wallItem";
 import WallsPool from "./wallsPool";
+import Matter from "matter-js";
+import Scroller from "../background/scroller";
 
 export enum WallChannel {
   /**
@@ -22,9 +27,10 @@ export interface WallEvent {
 export default class Wall extends Observer<WallChannel, WallEvent> {
   id: number;
   walls: number[] = [];
+  spriteY: number[] = [];
   nY = 0;
   step;
-  sprites = new Set<WallItem>();
+  sprites: WallItem[] = [];
   steps: {
     index: number;
     type: number;
@@ -32,20 +38,26 @@ export default class Wall extends Observer<WallChannel, WallEvent> {
     nY: number;
     render: boolean;
   }[] = [];
-  stepLeft: number[] = [];
-  stepRight: number[] = [];
   wallPool: WallsPool;
   curIndex = 0;
   curTextureIndex = 0;
   rectGround: [number, number][][] = [];
   lineGround: [number, number][] = [];
   graphics: PIXI.Graphics | undefined;
-  groundOffestX = 0;
-  groundOffestY = 6;
-  lineGroundComplete = false;
+  body: Matter.Body | undefined;
+  width: number;
+  container = new PIXI.Container();
+  graphicsCircle: PIXI.Graphics | undefined;
+  scroller: Scroller | undefined;
+  matterVertex: PIXI.Graphics[] = [];
+  verticeOffsetX = 0;
+  verticeOffsetY = 0;
+  boundaryOffsetY = 0;
+  static offsetY = 42;
 
   constructor(
     id: number,
+    scroller: Scroller,
     wallPool: WallsPool,
     walls: number[],
     nY = config.wallDefY,
@@ -57,10 +69,13 @@ export default class Wall extends Observer<WallChannel, WallEvent> {
     this.walls = walls;
     this.step = step;
     this.nY = nY;
+    this.width = this.walls.length * config.wallItemWidth;
+    this.scroller = scroller;
+
     if (this.step) {
       this.steps = this.walls
         .map((type, index) => ({ index, type }))
-        .filter((wall) => Step.includes(wall.type))
+        .filter((wall) => StepIndex.includes(wall.type))
         .map((wall) => {
           return {
             ...wall,
@@ -70,6 +85,25 @@ export default class Wall extends Observer<WallChannel, WallEvent> {
           };
         });
     }
+    this.spriteY = this.walls.map((v, i) => this.getCurSpriteY(i));
+    this.spriteY.forEach((a) => {
+      if (a < this.boundaryOffsetY) {
+        this.boundaryOffsetY = a;
+      }
+    });
+
+    // this.container.pivot.set(0, -64);
+    this.walls.forEach((v, i) => {
+      const sprite = this.getCurSprite(v, i);
+      if (sprite) this.container.addChild(sprite);
+    });
+    // this.container.updateTransform();
+    this.container.y = this.nY;
+
+    this.createlineGround();
+    if (this.lineGround.length !== 0) this.body = this.createBody();
+
+    // console.log(this.spriteY);
   }
 
   /**
@@ -77,7 +111,7 @@ export default class Wall extends Observer<WallChannel, WallEvent> {
    * @param sprite
    */
   add(sprite: WallItem): WallItem {
-    this.sprites.add(sprite);
+    this.sprites.push(sprite);
     return sprite;
   }
 
@@ -85,17 +119,17 @@ export default class Wall extends Observer<WallChannel, WallEvent> {
    * 获取当前墙体项的Y轴坐标
    * @returns
    */
-  getCurSpriteY(): number {
+  getCurSpriteY(curIndex: number): number {
     if (this.step) {
-      const index = this.steps.findIndex((wall) => this.curIndex <= wall.index);
+      const index = this.steps.findIndex((wall) => curIndex <= wall.index);
       // eslint-disable-next-line no-extra-boolean-cast
       if (!!~index) {
         const step = this.steps[index];
         const preStep = this.steps[index - 1];
-        // console.log(this.curIndex, step, preStep);
-        step.nY = preStep ? preStep.nY + preStep.offsetY : this.nY;
+        // console.log(curIndex, step, preStep);
+        step.nY = preStep ? preStep.nY + preStep.offsetY : 0;
 
-        if (this.curIndex === step.index) {
+        if (curIndex === step.index) {
           step.render = true;
           return step.type === 3 ? step.nY : step.nY + step.offsetY;
         }
@@ -104,10 +138,10 @@ export default class Wall extends Observer<WallChannel, WallEvent> {
       } else {
         const step = this.steps[this.steps.length - 1];
 
-        return step ? step.nY + step.offsetY : this.nY;
+        return step ? step.nY + step.offsetY : 0;
       }
     }
-    return this.nY;
+    return 0;
   }
 
   /**
@@ -126,61 +160,57 @@ export default class Wall extends Observer<WallChannel, WallEvent> {
    * @param index 纹理对象索引 索引值查看 [index.d.ts](src/config/index.ts)
    * @returns
    */
-  getCurSprite(index: number): WallItem | undefined {
+  getCurSprite(index: number, i: number): WallItem | undefined {
     const sprite = this.wallPool.get(index);
     if (sprite) {
       this.add(sprite);
-      sprite.position.y = this.getCurSpriteY();
+      sprite.position.x = i * config.wallItemWidth;
+      sprite.position.y = this.spriteY[i];
     }
     return sprite;
   }
 
   /**
-   * 更新墙体碰撞线
+   * 墙体碰撞线
    */
-  updateLineGround(sprite: WallItem): void {
-    this.lineGround = [];
-    const sprites = [...this.sprites];
-    const l = sprites[0];
-    this.lineGround.push(l.getPoint()[0]);
-    const r = sprite;
-    if (this.sprites.size > 1) {
-      for (const [, iter] of sprites.entries()) {
-        if (iter.step) {
-          this.lineGround.push(...iter.getPoint());
+  createlineGround(): [number, number][] {
+    // const lw = this.sprites[0];
+    const rw = this.sprites[this.sprites.length - 1];
+    const li = this.walls[0];
+    const lr = this.getPoint(li);
+    if (this.sprites.length !== 0) {
+      if (lr) this.lineGround.push([lr[0][0], lr[0][1] + this.spriteY[0]]);
+      // this.lineGround.push([lw.x, lw.y]);
+
+      for (const [i, index] of this.walls.entries()) {
+        if (StepIndex.includes(index)) {
+          const sr = this.getPoint(index);
+          if (sr) {
+            for (const iter of sr) {
+              this.lineGround.push([
+                iter[0] + i * config.wallItemWidth,
+                iter[1] + this.spriteY[i],
+              ]);
+            }
+          }
         }
       }
-    }
-    this.lineGround.push(r.getPoint()[1]);
-    this.lineGround.push([r.x + r.width, 375]);
-    this.lineGround.push([l.x, 375]);
-  }
 
-  /**
-   * 更新墙体碰撞矩形
-   */
-  updateRectGround(): void {
-    if (this.step === undefined) {
-      const len = this.sprites.size - 1;
-      if (len !== -1) {
-        const sprites = [...this.sprites];
-        const l = sprites[0];
-        const r = sprites[sprites.length - 1];
-        const [ltx, lty] = l.rectGround[0][0];
-        const [rtx, rty] = r.rectGround[0][1];
-        const [rbx, rby] = r.rectGround[0][2];
-        const [lbx, lby] = l.rectGround[0][3];
-
-        this.rectGround[0] = [
-          [ltx + l.x, lty + this.nY],
-          [rtx + len * config.wallItemWidth + l.x, rty + this.nY],
-          [rbx + len * config.wallItemWidth + l.x, rby + this.nY],
-          [lbx + l.x, lby + this.nY],
-        ];
-
-        // console.log(this.id, this.ground);
+      const ri = this.walls[this.walls.length - 1];
+      const rr = this.getPoint(ri);
+      if (rr && lr) {
+        const ei = this.walls.length - 1;
+        const r = rr[1];
+        const width = ei * config.wallItemWidth;
+        this.lineGround.push([r[0] + width, r[1] + this.spriteY[ei]]);
+        this.lineGround.push([
+          r[0] + width + Edge.offsetX,
+          this.container.height,
+        ]);
+        this.lineGround.push([lr[0][0] - Edge.offsetX, this.container.height]);
       }
     }
+    return this.lineGround;
   }
 
   /**
@@ -192,55 +222,154 @@ export default class Wall extends Observer<WallChannel, WallEvent> {
     return n < 0 ? 0 : n;
   }
 
-  /**
-   * 绘制墙体可碰撞矩形
-   * @returns
-   */
-  groundRectDraw(): PIXI.Graphics {
-    if (!this.graphics) {
-      this.graphics = new PIXI.Graphics();
-    }
-
-    if (this.step === undefined) {
-      this.graphics.clear();
-      this.graphics.lineStyle(1, 0xf31e67);
-      this.graphics.drawPolygon([
-        ...this.rectGround[0][0],
-        ...this.rectGround[0][1],
-        ...this.rectGround[0][2],
-        ...this.rectGround[0][3],
-      ]);
-      this.graphics.endFill();
-    }
-
-    return this.graphics;
-  }
-
-  /**
-   * 绘制墙体可碰撞线
-   * @returns
-   */
-  groundLineDraw(): PIXI.Graphics {
-    if (!this.graphics) {
-      this.graphics = new PIXI.Graphics();
-    }
-    this.graphics.clear();
-    this.graphics.lineStyle(1, 0xf31e67);
-    const temp = [];
-    for (const iterator of this.lineGround) {
-      temp.push(...iterator);
-      this.graphics.drawPolygon(temp);
-    }
-    this.graphics.endFill();
-
-    return this.graphics;
-  }
-
   clear(): void {
     this.lineGround = [];
     this.send(WallChannel.clear, {
       event: WallChannel.clear,
       target: this,
     });
+  }
+
+  getPoint(index: number): [number, number][] | undefined {
+    if ([...Window, ...Decoration].includes(index)) {
+      return Item.getPoint();
+    }
+    switch (index) {
+      case 3:
+        return Step.getPoint();
+      case 4:
+        return Step.getPoint(false);
+      case 5:
+        return Edge.getPoint();
+      case 6:
+        return Edge.getPoint(false);
+      case 7:
+        return Edge.getPoint();
+      case 8:
+        return Edge.getPoint(false);
+      default:
+        break;
+    }
+  }
+
+  ptv(p: number[]): Matter.Vector {
+    return Matter.Vector.create(p[0], p[1]);
+  }
+
+  createBody(): Matter.Body {
+    const body = Matter.Bodies.fromVertices(
+      this.container.x + this.container.width / 2,
+      this.container.y + this.container.height / 2,
+      [this.lineGround.map((p) => this.ptv(p))],
+      {
+        isStatic: true,
+      }
+    );
+    // console.log(body);
+    // const ver = body.vertices.sort((a, b) => a.x - b.x);
+    this.verticeOffsetX = body.vertices[0].x;
+    body.vertices.forEach((a) => {
+      if (a.x < this.verticeOffsetX) this.verticeOffsetX = a.x;
+    });
+    this.verticeOffsetX = this.container.x - this.verticeOffsetX;
+
+    this.verticeOffsetY = body.vertices[0].y;
+    body.vertices.forEach((a) => {
+      if (a.y < this.verticeOffsetY) this.verticeOffsetY = a.y;
+    });
+    // console.log(body.vertices);
+    // console.log(this.verticeOffsetY);
+
+    this.verticeOffsetY = this.container.y - this.verticeOffsetY;
+
+    Matter.Body.setCentre(
+      body,
+      {
+        x: -this.verticeOffsetX,
+        y: -this.verticeOffsetY - this.boundaryOffsetY - Wall.offsetY,
+      },
+      true
+    );
+    Matter.Body.setPosition(body, {
+      x: this.container.x + this.container.width / 2,
+      y: this.container.y + this.container.height / 2,
+    });
+
+    return body;
+  }
+
+  setOffsetXY(x: number, y?: number): void {
+    this.container.x = x;
+    this.container.y = y || this.container.y;
+    if (this.body) {
+      Matter.Body.setPosition(this.body, {
+        x: this.container.x + this.container.width / 2,
+        y: this.body.position.y,
+      });
+
+      // this.drawCircle(this.body.position.x, this.body.position.y);
+    }
+    // this.drawVertex();
+  }
+
+  /**
+   * 绘制 Body 中心点
+   * @param x
+   * @param y
+   */
+  drawCircle(x: number, y: number): void {
+    if (!this.graphicsCircle) {
+      this.graphicsCircle = new PIXI.Graphics();
+      if (this.scroller) this.scroller.app.stage.addChild(this.graphicsCircle);
+    }
+    this.graphicsCircle.clear();
+    this.graphicsCircle.beginFill(0x50fa7b);
+    this.graphicsCircle.drawCircle(0, 0, 2);
+    this.graphicsCircle.endFill();
+    this.graphicsCircle.x = x;
+    this.graphicsCircle.y = y;
+  }
+
+  /**
+   * 绘制墙体边界
+   */
+  drawRect(): void {
+    const rectangle = new PIXI.Graphics();
+    rectangle.lineStyle(1, 0xff3300, 1);
+    rectangle.drawRect(0, 0, this.container.width, this.container.height);
+    rectangle.endFill();
+    const circle = new PIXI.Graphics();
+    circle.beginFill(0xff3300);
+    circle.drawCircle(0, 0, 2);
+    circle.endFill();
+    circle.x = this.container.width / 2;
+    circle.y = this.container.height / 2;
+    this.container.addChild(rectangle);
+    this.container.addChild(circle);
+  }
+
+  /**
+   * 绘制Body顶点
+   */
+  drawVertex(): void {
+    if (this.matterVertex.length === 0) {
+      if (this.body)
+        this.body.vertices.forEach((vertice) => {
+          const circle = new PIXI.Graphics();
+          circle.clear();
+          circle.beginFill(0x1bb4fd);
+          circle.drawCircle(0, 0, 2);
+          circle.endFill();
+          this.matterVertex.push(circle);
+          if (this.scroller) this.scroller.app.stage.addChild(circle);
+        });
+    }
+    if (this.body) {
+      this.body.vertices.forEach((vertice, index) => {
+        const circle = this.matterVertex[index];
+        circle.x = vertice.x;
+        circle.y = vertice.y;
+      });
+    }
   }
 }

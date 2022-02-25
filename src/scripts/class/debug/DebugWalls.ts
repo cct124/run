@@ -17,22 +17,25 @@ export default class DebugWalls extends Module {
     this.clearListen = this.walls.listen(WallsChannel.update, () =>
       this.handleWallsGround()
     );
-    this.handleWallsGround();
+    // this.handleWallsGround();
   }
 
   /**
    * 处理地面边界
    */
   private handleWallsGround() {
-    for (
-      let index = this.walls.leftIndex;
-      index <= this.walls.rightIndex;
-      index++
-    ) {
-      if (this.walls.wallsMap[index].sprites.size !== 0) {
-        this.container.addChild(this.walls.wallsMap[index].groundLineDraw());
-      }
-    }
+    // for (
+    //   let index = this.walls.leftIndex;
+    //   index <= this.walls.rightIndex;
+    //   index++
+    // ) {
+    //   // if (this.walls.wallsMap[index].sprites.size !== 0) {
+    //   //   console.log(this.walls.wallsMap[index].groundLineDraw());
+    //   // }
+    //   // console.log(this.walls.wallsMap[index]);
+    //   if (this.walls.wallsMap[index])
+    //     this.container.addChild(this.walls.wallsMap[index]!.groundLineDraw());
+    // }
   }
 
   /**

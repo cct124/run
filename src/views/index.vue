@@ -58,10 +58,5 @@ export default class GameComponent extends Vue {
 .container {
   width: 100vw;
   height: 100vh;
-  .tool {
-    position: absolute;
-    width: 100vw;
-    height: 100vh;
-  }
 }
 </style>

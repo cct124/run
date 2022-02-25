@@ -1,6 +1,7 @@
 import { config } from "@/config";
 import { MAP } from "@/config/map";
 import * as PIXI from "pixi.js";
+import Game from "../game";
 import Walls from "../walls/walls";
 import Far from "./far";
 import Mid from "./mid";
@@ -20,8 +21,15 @@ export default class Scroller {
   viewportSpeed: number;
   walls: Walls;
   container = new PIXI.Container();
-
-  constructor(app: PIXI.Application, assets: PIXI.Loader, viewportSpeed = 5) {
+  game: Game;
+  units = 0;
+  constructor(
+    game: Game,
+    app: PIXI.Application,
+    assets: PIXI.Loader,
+    viewportSpeed = 5
+  ) {
+    this.game = game;
     this.app = app;
     this.assets = assets;
     this.viewportSpeed = viewportSpeed;
@@ -41,6 +49,9 @@ export default class Scroller {
     );
     this.walls = new Walls(this.container, MAP, this.assets, this);
     this.app.stage.addChild(this.container);
+    // this.setViewportX(3180);
+    this.setViewportX(0);
+    // this.setViewportX(0);
   }
   /**
    * 设置视口位置
@@ -59,7 +70,8 @@ export default class Scroller {
    * @param units
    */
   moveViewportXBy(units: number): void {
-    const newViewportX = this.viewportX + units;
+    this.units = units;
+    const newViewportX = this.viewportX + this.units;
     this.setViewportX(newViewportX);
   }
 

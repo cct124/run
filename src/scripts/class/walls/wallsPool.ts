@@ -22,7 +22,7 @@ export default class WallsPool {
   createPool(poolSize: number[]): WallItem[][] {
     for (const [index, iter] of poolSize.entries()) {
       for (let i = 0; i < iter; i++) {
-        const sprite = this.mapWall(index);
+        const sprite = this.mapWall(index + iter, index);
         if (sprite) this.pool[index].push(sprite);
       }
     }
@@ -52,23 +52,44 @@ export default class WallsPool {
    * @param index
    * @returns
    */
-  mapWall(index: number): WallItem | undefined {
+  mapWall(id: number, index: number): WallItem | undefined {
     if ([...Window, ...Decoration].includes(index)) {
-      return new Item(WallMap[index], index, config.wallDefY, this.assets);
+      return new Item(id, WallMap[index], index, config.wallDefY, this.assets);
     }
     switch (index) {
       case 3:
-        return new Step(WallMap[3], index, config.wallDefY, this.assets);
+        return new Step(id, WallMap[3], index, config.wallDefY, this.assets);
       case 4:
-        return new Step(WallMap[4], index, config.wallDefY, this.assets, false);
+        return new Step(
+          id,
+          WallMap[4],
+          index,
+          config.wallDefY,
+          this.assets,
+          false
+        );
       case 5:
-        return new Edge(WallMap[5], index, config.wallDefY, this.assets);
+        return new Edge(id, WallMap[5], index, config.wallDefY, this.assets);
       case 6:
-        return new Edge(WallMap[6], index, config.wallDefY, this.assets, false);
+        return new Edge(
+          id,
+          WallMap[6],
+          index,
+          config.wallDefY,
+          this.assets,
+          false
+        );
       case 7:
-        return new Edge(WallMap[7], index, config.wallDefY, this.assets);
+        return new Edge(id, WallMap[7], index, config.wallDefY, this.assets);
       case 8:
-        return new Edge(WallMap[8], index, config.wallDefY, this.assets, false);
+        return new Edge(
+          id,
+          WallMap[8],
+          index,
+          config.wallDefY,
+          this.assets,
+          false
+        );
       default:
         break;
     }

@@ -47,7 +47,16 @@ export const MAP: GameMap[] = [
   },
   {
     nY: 190,
-    walls: [5, 1, 9, 2, 3, 9, 10, 4, 11, 6],
+    walls: [5, 1, 2, 3, 9, 10, 4, 2, 6],
+    step: true,
+  },
+  {
+    nY: 0,
+    walls: [0, 0],
+  },
+  {
+    nY: 190,
+    walls: [5, 1, 9, 2, 3, 9, 10, 4, 11, 2, 3, 9, 6],
     step: true,
   },
   {

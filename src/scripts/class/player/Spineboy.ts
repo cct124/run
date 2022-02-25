@@ -1,6 +1,7 @@
 import * as PIXI from "pixi.js";
-import { config } from "@/config";
 import Player from "./index";
+import Game from "../game";
+import { ITrackEntry } from "pixi-spine";
 
 enum Single {
   aim = "aim",
@@ -60,9 +61,23 @@ export enum PlayerAnimations {
 }
 
 export default class Spineboy extends Player {
-  constructor(app: PIXI.Application, loader: PIXI.Loader) {
-    super(app, loader, config.palyer.scale, 65, 1, 0.3);
-    this.setAnimation(0, PlayerAnimations.idle, true);
+  constructor(
+    game: Game,
+    loader: PIXI.Loader,
+    x: number,
+    y: number,
+    scale: number
+  ) {
+    super(game, loader, x, y, scale);
+    this.enter();
+  }
+
+  /**
+   * 进入游戏
+   */
+  enter(): ITrackEntry {
+    this.setAnimation(0, PlayerAnimations.portal, false);
+    return this.addAnimation(0, PlayerAnimations.idle, true, 0);
   }
 
   /**
@@ -73,8 +88,8 @@ export default class Spineboy extends Player {
     this.spineData.state.addAnimation(1, "aim", true, 0);
 
     const crosshair = this.spineData.skeleton.findBone("crosshair");
-    crosshair.x = (100 - this.spineData.x) / this.scale;
-    crosshair.y = (this.spineData.y - 100) / this.scale;
+    crosshair.x = (100 - this.spineData.x) / this.scale.x;
+    crosshair.y = (this.spineData.y - 100) / this.scale.y;
     crosshair.updateWorldTransform();
   }
 }

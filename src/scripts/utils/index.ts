@@ -43,3 +43,32 @@ export function randomNum(
       return Math.random();
   }
 }
+
+/**
+ * 混合两个对象
+ * @param t1
+ * @param t2
+ * @returns
+ */
+export function mixins<T>(t1: unknown, t2: T): T {
+  return Object.assign(t1, t2);
+}
+
+export function deepMixins(
+  obj1: { [key: string]: any },
+  obj2: { [key: string]: any }
+) {
+  let key;
+  for (key in obj2) {
+    // 如果target(也就是obj1[key])存在，且是对象的话再去调用deepMerge，否则就是obj1[key]里面没这个对象，需要与obj2[key]合并
+    // 如果obj2[key]没有值或者值不是对象，此时直接替换obj1[key]
+    obj1[key] =
+      obj1[key] &&
+      obj1[key].toString() === "[object Object]" &&
+      obj2[key] &&
+      obj2[key].toString() === "[object Object]"
+        ? deepMixins(obj1[key], obj2[key])
+        : (obj1[key] = obj2[key]);
+  }
+  return obj1;
+}
