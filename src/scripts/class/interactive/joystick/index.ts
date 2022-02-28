@@ -1,10 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { config } from "@/config";
 import { deepMixins } from "@/scripts/utils";
 import * as PIXI from "pixi.js";
+import Interactive from "..";
+import Gsap from "gsap";
 import { PIXIContainerObserver } from "../../observer";
 export enum JoystickChannel {
-  update = "update",
+  move = "move",
 }
 
 export interface JoystickEvent {
@@ -25,46 +30,137 @@ export interface JoystickOptions {
    * 是否可操控
    */
   interactive?: boolean;
+  limitArea?: limitAreaOptions;
+  dragTarget?: limitAreaOptions;
   dragArea?: DragAreaOptions;
-  dragTarget?: DragAreaOptions;
+}
+export interface DragAreaOptions {
+  /**
+   * 半径大小
+   */
+  size?: number;
+  /**
+   * 透明度
+   */
+  alpha?: number;
 }
 
-export interface DragAreaOptions {
+export interface limitAreaOptions {
   color?: number;
+  /**
+   * 半径大小
+   */
   size?: number;
+  /**
+   * 透明度
+   */
   alpha?: number;
+  /**
+   * 拖拽时的透明度
+   */
+  targetAlpha?: number;
+}
+
+export interface DragTargetData {
+  angle: number;
+  x: number;
+  y: number;
 }
 
 export default class Joystick extends PIXIContainerObserver<
   JoystickChannel,
   JoystickEvent
 > {
-  dragArea: PIXI.Graphics;
+  /**
+   * 交互类
+   */
+  inter: Interactive;
+  /**
+   * 限制拖拽目标区域
+   */
+  limitArea: PIXI.Graphics;
+  /**
+   * 拖拽目标
+   */
   dragTarget: PIXI.Graphics;
-  constructor(options: JoystickOptions) {
+  /**
+   * 可拖拽区域
+   */
+  dragArea: PIXI.Graphics;
+  /**
+   * 是否开始拖拽
+   */
+  dragging = false;
+  /**
+   * PIXI事件对象DATA
+   */
+  evtData: any;
+  /**
+   * 配置对象
+   */
+  opt: JoystickOptions;
+  /**
+   * 拖拽目标角度
+   */
+  dragTargetData: DragTargetData = {
+    angle: 0,
+    x: 0,
+    y: 0,
+  };
+
+  constructor(interactive: Interactive, options: JoystickOptions) {
     super();
-    const opt = deepMixins(
+    /**
+     * 初始化配置对象
+     */
+    this.opt = deepMixins(
       {
         interactive: config.joystick.interactive,
-        dragArea: {
-          color: config.joystick.dragArea.color,
-          size: config.joystick.dragArea.size,
-          alpha: config.joystick.dragArea.alpha,
+        limitArea: {
+          color: config.joystick.limitArea.color,
+          size: config.joystick.limitArea.size,
+          alpha: config.joystick.limitArea.alpha,
         },
         dragTarget: {
           color: config.joystick.dragTarget.color,
           size: config.joystick.dragTarget.size,
           alpha: config.joystick.dragTarget.alpha,
+          targetAlpha: config.joystick.dragTarget.targetAlpha,
+        },
+        dragArea: {
+          size: config.joystick.dragArea.size,
+          alpha: config.joystick.dragArea.alpha,
         },
       },
       options || {}
     ) as JoystickOptions;
-    this.x = opt.x;
-    this.y = opt.y;
-    this.dragArea = this.createDragArea(opt.dragArea!);
-    this.dragTarget = this.createDragTarget(opt.interactive!, opt.dragTarget!);
+    this.inter = interactive;
+    this.x = this.opt.x;
+    this.y = this.opt.y;
+    this.limitArea = this.createLimitArea(this.opt.limitArea!);
+    this.dragTarget = this.createDragTarget(this.opt.dragTarget!);
+    this.dragArea = this.createDragArea(this.opt.dragArea!);
     this.addChild(this.dragArea);
+    this.addChild(this.limitArea);
     this.addChild(this.dragTarget);
+    this.dragArea.interactive = this.opt.interactive!;
+    this.dragTarget.interactive = this.opt.interactive!;
+    this.limitArea.interactive = this.opt.interactive!;
+    this.listener();
+  }
+
+  /**
+   * 监听事件
+   */
+  listener(): void {
+    this.dragArea.on("pointerdown", (evt) => this.onDragStart(evt));
+    this.limitArea.on("pointerdown", (evt) => this.onDragStart(evt));
+    this.dragTarget.on("pointerdown", (evt) => this.onDragStart(evt));
+    this.dragArea.on("pointermove", (evt) => this.onDragMove(evt));
+    this.dragArea.on("pointermove", (evt) => this.onDragMove(evt));
+    this.dragArea.on("pointerupoutside", (evt) => this.onDragEnd(evt));
+    this.dragArea.on("pointerup", (evt) => this.onDragEnd(evt));
+    this.dragTarget.on("pointerup", (evt) => this.onDragEnd(evt));
   }
 
   /**
@@ -72,10 +168,8 @@ export default class Joystick extends PIXIContainerObserver<
    * @param opt
    * @returns
    */
-  createDragTarget(interactive: boolean, opt: DragAreaOptions): PIXI.Graphics {
+  createDragTarget(opt: limitAreaOptions): PIXI.Graphics {
     const target = this.createGraphics(opt.color!, opt.size!, opt.alpha!);
-    target.interactive = interactive;
-    target.on("pointerdown", (evt) => this.onDragStart(evt));
     return target;
   }
 
@@ -84,8 +178,19 @@ export default class Joystick extends PIXIContainerObserver<
    * @param opt
    * @returns
    */
+  createLimitArea(opt: limitAreaOptions): PIXI.Graphics {
+    const target = this.createGraphics(opt.color!, opt.size!, opt.alpha!);
+    return target;
+  }
+
+  /**
+   * 事件响应区域
+   * @param opt
+   * @returns
+   */
   createDragArea(opt: DragAreaOptions): PIXI.Graphics {
-    return this.createGraphics(opt.color!, opt.size!, opt.alpha!);
+    const target = this.createGraphics(0xffffff, opt.size!, opt.alpha!);
+    return target;
   }
 
   /**
@@ -104,7 +209,84 @@ export default class Joystick extends PIXIContainerObserver<
     return circle;
   }
 
-  onDragStart(evt: any) {
-    console.log(evt);
+  /**
+   * 拖拽开始
+   * @param evt
+   */
+  onDragStart(evt: any): void {
+    this.evtData = evt.data;
+    const { x, y } = this.evtData.getLocalPosition(this.dragTarget.parent);
+    const p = this.limitAreaPosition(x, y);
+    this.dragTarget.x = p.x;
+    this.dragTarget.y = p.y;
+    this.dragging = true;
+    this.dragTarget.alpha = this.opt.dragTarget!.targetAlpha!;
+  }
+  /**
+   * 拖拽结束
+   * @param evt
+   */
+  onDragEnd(evt: any): void {
+    this.dragging = false;
+    this.dragTarget.alpha = this.opt.dragTarget!.alpha!;
+    this.evtData = evt.data;
+    this.reboundAnimation(this.dragTarget);
+  }
+  /**
+   * 拖拽
+   * @param evt
+   */
+  onDragMove(evt: any): void {
+    if (this.dragging) {
+      const { x, y } = this.evtData.getLocalPosition(this.dragTarget.parent);
+      const p = this.limitAreaPosition(x, y);
+
+      this.dragTarget.x = p.x;
+      this.dragTarget.y = p.y;
+    }
+  }
+
+  /**
+   * 获取限制拖拽区域内的X,Y值
+   * @param x
+   * @param y
+   * @returns
+   */
+  limitAreaPosition(x: number, y: number): { x: number; y: number } {
+    const size = this.opt.limitArea!.size!;
+    const r = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+    const cos = x / r;
+    const sin = y / r;
+    const cosRad = Math.acos(cos);
+    const angle = (cosRad * 180) / Math.PI;
+
+    if (r > size) {
+      x = cos * size;
+      y = sin * size;
+    }
+    this.dragTargetData.angle = Math.round(sin < 0 ? angle : 180 - angle + 180);
+    this.dragTargetData.x = x;
+    this.dragTargetData.y = y;
+
+    this.send(JoystickChannel.move, {
+      event: JoystickChannel.move,
+      target: this,
+    });
+    return { x, y };
+  }
+
+  reboundAnimation(target: PIXI.Graphics) {
+    const line = Gsap.timeline({
+      onComplete: () => {
+        this.dragTargetData.angle = 0;
+        this.dragTargetData.x = 0;
+        this.dragTargetData.y = 0;
+        this.send(JoystickChannel.move, {
+          event: JoystickChannel.move,
+          target: this,
+        });
+      },
+    });
+    line.to(target, { x: 0, y: 0, duration: 0.1 });
   }
 }

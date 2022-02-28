@@ -78,6 +78,8 @@ export default class ToolPopup extends Vue {
   right: 10px;
   font-size: 30px;
   color: #ffffff;
+  pointer-events: all;
+
   &::v-deep {
     .setting-popup {
       width: 250px;

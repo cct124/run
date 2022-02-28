@@ -3,12 +3,11 @@ import { GameMap } from "@/config/map";
 import Matter from "matter-js";
 import * as PIXI from "pixi.js";
 import Scroller from "../background/scroller";
-import { PIXIContainerObserver } from "@/scripts/class/observer";
 import Wall from "./wall";
 import WallsPool from "./wallsPool";
 
 export enum WallsChannel {
-  update = "update",
+  wall_update = "wall_update",
 }
 
 export interface WallsEvent {
@@ -19,10 +18,7 @@ export interface WallsEvent {
 /**
  * 墙体集合
  */
-export default class Walls extends PIXIContainerObserver<
-  WallsChannel,
-  WallsEvent
-> {
+export default class Walls extends PIXI.Container {
   /**
    * 墙体集合数据
    */
@@ -147,8 +143,8 @@ export default class Walls extends PIXIContainerObserver<
     /**
      * 位置更新事件
      */
-    this.send(WallsChannel.update, {
-      event: WallsChannel.update,
+    this.emit(WallsChannel.wall_update, {
+      event: WallsChannel.wall_update,
       target: this,
     });
   }

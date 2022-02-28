@@ -35,17 +35,4 @@ export default class Tools extends Vue.with(
   }
 ) {}
 </script>
-<style lang="scss" scoped>
-.tool {
-  z-index: 1;
-  position: absolute;
-  width: 100vw;
-  height: 100vh;
-
-  .control {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-  }
-}
-</style>
+<style lang="scss" scoped></style>

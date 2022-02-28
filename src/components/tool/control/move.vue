@@ -1,5 +1,5 @@
 <template>
-  <van-button class="move" type="primary" @click="move">
+  <van-button class="move events" type="primary" @click="move">
     <van-icon class="flex-center" name="pause" v-if="mousedown" />
     <van-icon class="flex-center" name="play" v-else />
     <span>run</span>

@@ -8,15 +8,15 @@ export default class DebugWalls extends Module {
   debug: Debug;
   walls: Walls;
   container = new PIXI.Container();
-  clearListen: () => boolean;
+  // clearListen: () => boolean;
   constructor(debug: Debug) {
     super();
     this.debug = debug;
     this.walls = this.debug.game.scroller!.walls;
     this.debug.container.addChild(this.container);
-    this.clearListen = this.walls.listen(WallsChannel.update, () =>
-      this.handleWallsGround()
-    );
+    // this.clearListen = this.walls.listen(WallsChannel.update, () =>
+    //   this.handleWallsGround()
+    // );
     // this.handleWallsGround();
   }
 
@@ -43,7 +43,7 @@ export default class DebugWalls extends Module {
    */
   clear(): boolean {
     this.debug.container.removeChild(this.container);
-    this.clearListen();
+    // this.clearListen();
     return true;
   }
 }

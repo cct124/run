@@ -1,5 +1,5 @@
 <template>
-  <div id="tool" class="tool">
+  <div id="tool" class="tool events-none">
     <Control class="pad-10 w-100vw bx flex-jcfe-aic"></Control>
     <ToolPopup></ToolPopup>
   </div>

@@ -26,20 +26,22 @@ export default class GameComponent extends Vue {
     const canvas = this.$refs.canvas as HTMLCanvasElement;
     this.game = new Game({
       view: canvas,
-      width: 667,
-      height: 375,
+      width: container.offsetWidth,
+      height: container.offsetHeight,
       assets: config.assets,
     });
     this.game.listen(GameChannel.init, () => {
       this.init = true;
     });
-    this.adaptation(container, canvas);
+    // this.adaptation(container, canvas);
   }
 
   /**
    * 适配
    */
   private adaptation(container: HTMLElement, target: HTMLElement) {
+    console.log(container.offsetWidth, container.offsetHeight);
+
     const adaptation = new Adaptation(
       {
         width: container.offsetWidth,
