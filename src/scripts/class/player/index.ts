@@ -13,6 +13,7 @@ export default class Player extends PIXI.Container {
   body: Matter.Body;
   cw = 0;
   ch = 0;
+  init = false;
 
   constructor(
     game: Game,
@@ -27,6 +28,7 @@ export default class Player extends PIXI.Container {
     this.spineData = new Spine(spineData);
     this.game = game;
     this.spineData.scale.set(scale, scale);
+
     this.addChild(this.spineData);
     this.x = x;
     this.y = y;
@@ -34,7 +36,7 @@ export default class Player extends PIXI.Container {
     this.ch = this.height / 2;
     if (this.game.scroller) this.game.scroller.container.addChild(this);
     this.body = this.createBody();
-    // this.drawBoundary();
+    this.drawBoundary();
     if (this.game.physicsEngine)
       Matter.Composite.add(this.game.physicsEngine.world, this.body);
     this.game.app.ticker.add((dt: number) => this.update(dt));
@@ -99,20 +101,34 @@ export default class Player extends PIXI.Container {
    * 创建物理引擎刚体
    */
   createBody(): Matter.Body {
-    return Matter.Bodies.rectangle(
+    const body = Matter.Bodies.rectangle(
       this.x,
-      this.y - this.height / 2,
+      this.y,
       this.width,
       this.height
     );
+    return body;
+  }
+
+  coorTrans(rad: number): { cx: number; sy: number } {
+    const cx = this.ch * Math.cos(rad);
+    const sy = Math.sin(rad) * cx;
+    return { cx, sy };
   }
 
   update(dt: number): void {
-    const x = this.body.position.x;
-    const y = this.body.position.y + this.ch;
-    if (this.x !== this.body.position.x || this.y !== y) {
-      this.x = x;
-      this.y = y;
-    }
+    const { x: x1, y: y1 } = this.body.vertices[2];
+    const { x: x2, y: y2 } = this.body.vertices[3];
+    this.x = x2 - (x2 - x1) / 2;
+    this.y = y2 - (y2 - y1) / 2;
+    this.rotation = this.body.angle;
+  }
+
+  circle(): PIXI.Graphics {
+    const circle = new PIXI.Graphics();
+    circle.beginFill(0x1989fa);
+    circle.drawCircle(0, 0, 4);
+    circle.endFill();
+    return circle;
   }
 }

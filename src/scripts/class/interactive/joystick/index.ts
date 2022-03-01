@@ -9,7 +9,9 @@ import Interactive from "..";
 import Gsap from "gsap";
 import { PIXIContainerObserver } from "../../observer";
 export enum JoystickChannel {
+  start = "start",
   move = "move",
+  end = "end",
 }
 
 export interface JoystickEvent {
@@ -65,6 +67,10 @@ export interface DragTargetData {
   angle: number;
   x: number;
   y: number;
+  /**
+   * 开始拖拽
+   */
+  dragging: boolean;
 }
 
 export default class Joystick extends PIXIContainerObserver<
@@ -87,10 +93,7 @@ export default class Joystick extends PIXIContainerObserver<
    * 可拖拽区域
    */
   dragArea: PIXI.Graphics;
-  /**
-   * 是否开始拖拽
-   */
-  dragging = false;
+
   /**
    * PIXI事件对象DATA
    */
@@ -106,6 +109,10 @@ export default class Joystick extends PIXIContainerObserver<
     angle: 0,
     x: 0,
     y: 0,
+    /**
+     * 是否开始拖拽
+     */
+    dragging: false,
   };
 
   constructor(interactive: Interactive, options: JoystickOptions) {
@@ -219,15 +226,19 @@ export default class Joystick extends PIXIContainerObserver<
     const p = this.limitAreaPosition(x, y);
     this.dragTarget.x = p.x;
     this.dragTarget.y = p.y;
-    this.dragging = true;
+    this.dragTargetData.dragging = true;
     this.dragTarget.alpha = this.opt.dragTarget!.targetAlpha!;
+    this.send(JoystickChannel.start, {
+      event: JoystickChannel.start,
+      target: this,
+    });
   }
   /**
    * 拖拽结束
    * @param evt
    */
   onDragEnd(evt: any): void {
-    this.dragging = false;
+    this.dragTargetData.dragging = false;
     this.dragTarget.alpha = this.opt.dragTarget!.alpha!;
     this.evtData = evt.data;
     this.reboundAnimation(this.dragTarget);
@@ -237,7 +248,7 @@ export default class Joystick extends PIXIContainerObserver<
    * @param evt
    */
   onDragMove(evt: any): void {
-    if (this.dragging) {
+    if (this.dragTargetData.dragging) {
       const { x, y } = this.evtData.getLocalPosition(this.dragTarget.parent);
       const p = this.limitAreaPosition(x, y);
 
@@ -281,8 +292,8 @@ export default class Joystick extends PIXIContainerObserver<
         this.dragTargetData.angle = 0;
         this.dragTargetData.x = 0;
         this.dragTargetData.y = 0;
-        this.send(JoystickChannel.move, {
-          event: JoystickChannel.move,
+        this.send(JoystickChannel.end, {
+          event: JoystickChannel.end,
           target: this,
         });
       },

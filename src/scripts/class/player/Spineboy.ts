@@ -61,6 +61,10 @@ export enum PlayerAnimations {
 }
 
 export default class Spineboy extends Player {
+  status = {
+    walk: false,
+  };
+
   constructor(
     game: Game,
     loader: PIXI.Loader,
@@ -69,14 +73,37 @@ export default class Spineboy extends Player {
     scale: number
   ) {
     super(game, loader, x, y, scale);
+    this.init = true;
     this.enter();
+  }
+
+  /**
+   * 行走
+   * @returns
+   */
+  walk(): ITrackEntry {
+    const ITrackEntry = this.setAnimation(0, PlayerAnimations.walk, true);
+    this.status.walk = true;
+    return ITrackEntry;
+  }
+  /**
+   * 行走结束
+   * @returns
+   */
+  walkEnd(): boolean {
+    return (this.status.walk = false);
   }
 
   /**
    * 进入游戏
    */
   enter(): ITrackEntry {
-    this.setAnimation(0, PlayerAnimations.portal, false);
+    // const ITrackEntry = this.setAnimation(0, PlayerAnimations.portal, false);
+    // ITrackEntry.listener = {
+    //   complete: () => {
+    //     this.init = true;
+    //   },
+    // };
     return this.addAnimation(0, PlayerAnimations.idle, true, 0);
   }
 

@@ -3,7 +3,8 @@ import { config } from "@/config";
 import { deepMixins } from "@/scripts/utils";
 import * as PIXI from "pixi.js";
 import Game from "../game";
-import Joystick, { JoystickChannel } from "./joystick";
+import Spineboy, { PlayerAnimations } from "../player/Spineboy";
+import Joystick, { JoystickChannel, JoystickEvent } from "./joystick";
 
 export interface InteractiveOptions {
   joystick?: {
@@ -17,6 +18,7 @@ export default class Interactive extends PIXI.Container {
   game: Game;
   joystick: Joystick;
   interactiveArea: PIXI.Graphics;
+  palyer: Spineboy;
   constructor(game: Game, options?: InteractiveOptions) {
     super();
     const opt = deepMixins(
@@ -36,7 +38,9 @@ export default class Interactive extends PIXI.Container {
       y: opt.joystick!.y!,
     });
     this.interactiveArea = this.createInteractiveArea();
+    this.palyer = this.game!.palyer! as Spineboy;
     this.init();
+    this.joystickBindPlayer();
   }
 
   init(): void {
@@ -57,5 +61,30 @@ export default class Interactive extends PIXI.Container {
     rect.drawRect(0, 0, this.game.app.view.width, this.game.app.view.height);
     rect.endFill();
     return rect;
+  }
+
+  joystickBindPlayer(): void {
+    this.joystick.listen(JoystickChannel.start, () => this.joystickSatrt());
+    this.joystick.listen(JoystickChannel.end, () => this.joystickEnd());
+    this.game.app.ticker.add(() => {
+      this.move();
+    });
+  }
+  joystickSatrt(): void {
+    console.log("joystickSatrt");
+    if (this.palyer.init) {
+      this.palyer.walk();
+    }
+  }
+  joystickEnd(): void {
+    if (this.palyer.init) {
+      this.palyer.walkEnd();
+      this.palyer.setAnimation(0, PlayerAnimations.idle, true);
+    }
+  }
+  move(): void {
+    if (this.palyer.status.walk) {
+      this.game.scroller!.moveViewportXBy(5);
+    }
   }
 }

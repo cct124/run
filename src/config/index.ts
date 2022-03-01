@@ -31,6 +31,19 @@ export interface Config {
      * 玩家大小
      */
     scale: number;
+    /**
+     * 玩家运动速度
+     */
+    speed: {
+      /**
+       * 行走
+       */
+      walk: number;
+      /**
+       * 奔跑
+       */
+      run: number;
+    };
   };
   /**
    * 操控杆配置
@@ -114,6 +127,10 @@ export const config: Config = {
   palyer: {
     startX: 150,
     scale: 0.2,
+    speed: {
+      walk: 5,
+      run: 10,
+    },
   },
   joystick: {
     x: 100,
