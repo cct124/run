@@ -3,18 +3,24 @@ import { config } from "@/config";
 import { Spine, ITrackEntry } from "pixi-spine";
 import Game from "../game";
 import Matter from "matter-js";
+import { PLAYER } from "@/config/palyer";
+import { PIXIContainerObserver } from "../observer";
+import { BodyType } from "../physics/PhysicsEngine";
 
 /**
  * 玩家
  */
-export default class Player extends PIXI.Container {
+export default class Player<T, E> extends PIXIContainerObserver<T, E> {
   spineData: Spine;
   game: Game;
   body: Matter.Body;
+  graphicsCircle: PIXI.Graphics | undefined;
   cw = 0;
   ch = 0;
   init = false;
-
+  frictionAir = 0;
+  nx = 0;
+  ny = 0;
   constructor(
     game: Game,
     loader: PIXI.Loader,
@@ -32,15 +38,14 @@ export default class Player extends PIXI.Container {
     this.addChild(this.spineData);
     this.x = x;
     this.y = y;
+    this.nx = x;
+    this.ny = y;
     this.cw = this.width / 2;
     this.ch = this.height / 2;
     if (this.game.scroller) this.game.scroller.container.addChild(this);
     this.body = this.createBody();
-    this.drawBoundary();
     if (this.game.physicsEngine)
       Matter.Composite.add(this.game.physicsEngine.world, this.body);
-    this.game.app.ticker.add((dt: number) => this.update(dt));
-    // console.log(this.width, this.height);
   }
 
   /**
@@ -101,12 +106,12 @@ export default class Player extends PIXI.Container {
    * 创建物理引擎刚体
    */
   createBody(): Matter.Body {
-    const body = Matter.Bodies.rectangle(
-      this.x,
-      this.y,
-      this.width,
-      this.height
-    );
+    const body = Matter.Bodies.rectangle(this.x, this.y, 5, 5, {
+      frictionAir: PLAYER.frictionAir,
+      friction: 0,
+      label: BodyType.Player,
+    });
+    // console.log(body);
     return body;
   }
 
@@ -116,19 +121,16 @@ export default class Player extends PIXI.Container {
     return { cx, sy };
   }
 
-  update(dt: number): void {
-    const { x: x1, y: y1 } = this.body.vertices[2];
-    const { x: x2, y: y2 } = this.body.vertices[3];
-    this.x = x2 - (x2 - x1) / 2;
-    this.y = y2 - (y2 - y1) / 2;
-    this.rotation = this.body.angle;
-  }
-
-  circle(): PIXI.Graphics {
-    const circle = new PIXI.Graphics();
-    circle.beginFill(0x1989fa);
-    circle.drawCircle(0, 0, 4);
-    circle.endFill();
-    return circle;
+  circle(x: number, y: number): PIXI.Graphics {
+    if (!this.graphicsCircle) {
+      this.graphicsCircle = new PIXI.Graphics();
+      this.graphicsCircle.beginFill(0x1989fa);
+      this.graphicsCircle.drawCircle(0, 0, 4);
+      this.graphicsCircle.endFill();
+      this.game.app.stage.addChild(this.graphicsCircle);
+    }
+    this.graphicsCircle.x = x;
+    this.graphicsCircle.y = y;
+    return this.graphicsCircle;
   }
 }

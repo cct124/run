@@ -1,4 +1,4 @@
-import { config, Decoration, Window, StepIndex, EdgeIndex } from "@/config";
+import { config, Decoration, Window, StepIndex } from "@/config";
 import * as PIXI from "pixi.js";
 import { Observer } from "../observer";
 import Edge from "./edge";
@@ -175,7 +175,7 @@ export default class Wall extends Observer<WallChannel, WallEvent> {
    */
   createlineGround(): [number, number][] {
     // const lw = this.sprites[0];
-    const rw = this.sprites[this.sprites.length - 1];
+    // const rw = this.sprites[this.sprites.length - 1];
     const li = this.walls[0];
     const lr = this.getPoint(li);
     if (this.sprites.length !== 0) {
@@ -224,6 +224,14 @@ export default class Wall extends Observer<WallChannel, WallEvent> {
 
   clear(): void {
     this.lineGround = [];
+    if (this.body) {
+      Matter.Composite.remove(
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        this.scroller!.game.physicsEngine!.world,
+        this.body
+      );
+    }
+
     this.send(WallChannel.clear, {
       event: WallChannel.clear,
       target: this,
@@ -263,6 +271,7 @@ export default class Wall extends Observer<WallChannel, WallEvent> {
       [this.lineGround.map((p) => this.ptv(p))],
       {
         isStatic: true,
+        label: this.id.toString(),
       }
     );
     // console.log(body);
@@ -354,7 +363,7 @@ export default class Wall extends Observer<WallChannel, WallEvent> {
   drawVertex(): void {
     if (this.matterVertex.length === 0) {
       if (this.body)
-        this.body.vertices.forEach((vertice) => {
+        this.body.vertices.forEach(() => {
           const circle = new PIXI.Graphics();
           circle.clear();
           circle.beginFill(0x1bb4fd);

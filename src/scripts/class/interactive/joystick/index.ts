@@ -8,6 +8,7 @@ import * as PIXI from "pixi.js";
 import Interactive from "..";
 import Gsap from "gsap";
 import { PIXIContainerObserver } from "../../observer";
+import { DragArea, DRAG_AREA, JOY_OPT } from "@/config/joystick";
 export enum JoystickChannel {
   start = "start",
   move = "move",
@@ -35,6 +36,7 @@ export interface JoystickOptions {
   limitArea?: limitAreaOptions;
   dragTarget?: limitAreaOptions;
   dragArea?: DragAreaOptions;
+  dragAreaTypes?: DragArea[];
 }
 export interface DragAreaOptions {
   /**
@@ -68,9 +70,15 @@ export interface DragTargetData {
   x: number;
   y: number;
   /**
+   * 点到中心的半径
+   */
+  r: number;
+  mr: number;
+  /**
    * 开始拖拽
    */
   dragging: boolean;
+  areaType: DRAG_AREA | null;
 }
 
 export default class Joystick extends PIXIContainerObserver<
@@ -109,10 +117,13 @@ export default class Joystick extends PIXIContainerObserver<
     angle: 0,
     x: 0,
     y: 0,
+    r: 0,
+    mr: 0,
     /**
      * 是否开始拖拽
      */
     dragging: false,
+    areaType: null,
   };
 
   constructor(interactive: Interactive, options: JoystickOptions) {
@@ -122,28 +133,30 @@ export default class Joystick extends PIXIContainerObserver<
      */
     this.opt = deepMixins(
       {
-        interactive: config.joystick.interactive,
+        interactive: JOY_OPT.interactive,
         limitArea: {
-          color: config.joystick.limitArea.color,
-          size: config.joystick.limitArea.size,
-          alpha: config.joystick.limitArea.alpha,
+          color: JOY_OPT.limitArea.color,
+          size: JOY_OPT.limitArea.size,
+          alpha: JOY_OPT.limitArea.alpha,
         },
         dragTarget: {
-          color: config.joystick.dragTarget.color,
-          size: config.joystick.dragTarget.size,
-          alpha: config.joystick.dragTarget.alpha,
-          targetAlpha: config.joystick.dragTarget.targetAlpha,
+          color: JOY_OPT.dragTarget.color,
+          size: JOY_OPT.dragTarget.size,
+          alpha: JOY_OPT.dragTarget.alpha,
+          targetAlpha: JOY_OPT.dragTarget.targetAlpha,
         },
         dragArea: {
-          size: config.joystick.dragArea.size,
-          alpha: config.joystick.dragArea.alpha,
+          size: JOY_OPT.dragArea.size,
+          alpha: JOY_OPT.dragArea.alpha,
         },
+        dragAreaTypes: JOY_OPT.dragAreaTypes,
       },
       options || {}
     ) as JoystickOptions;
     this.inter = interactive;
     this.x = this.opt.x;
     this.y = this.opt.y;
+    this.dragTargetData.mr = this.opt.limitArea!.size!;
     this.limitArea = this.createLimitArea(this.opt.limitArea!);
     this.dragTarget = this.createDragTarget(this.opt.dragTarget!);
     this.dragArea = this.createDragArea(this.opt.dragArea!);
@@ -270,14 +283,16 @@ export default class Joystick extends PIXIContainerObserver<
     const sin = y / r;
     const cosRad = Math.acos(cos);
     const angle = (cosRad * 180) / Math.PI;
-
+    this.dragTargetData.r = r;
     if (r > size) {
+      this.dragTargetData.r = size;
       x = cos * size;
       y = sin * size;
     }
     this.dragTargetData.angle = Math.round(sin < 0 ? angle : 180 - angle + 180);
     this.dragTargetData.x = x;
     this.dragTargetData.y = y;
+    this.dragTargetData.areaType = this.dragAreaType(this.dragTargetData.angle);
 
     this.send(JoystickChannel.move, {
       event: JoystickChannel.move,
@@ -299,5 +314,10 @@ export default class Joystick extends PIXIContainerObserver<
       },
     });
     line.to(target, { x: 0, y: 0, duration: 0.1 });
+  }
+
+  dragAreaType(angle: number): DRAG_AREA {
+    const t = this.opt.dragAreaTypes!.find((p) => p.scope(angle));
+    return t!.type;
   }
 }

@@ -9,6 +9,7 @@ import PhysicsEngine from "./physics/PhysicsEngine";
 import { MAP } from "@/config/map";
 import Wall from "./walls/wall";
 import Interactive from "./interactive";
+import { PLAYER } from "@/config/palyer";
 
 export enum GameChannel {
   /**
@@ -58,7 +59,7 @@ export default class Game extends Observer<GameChannel, GameEvent> {
    */
   scroller: Scroller | undefined;
 
-  palyer: Player | undefined;
+  palyer: Spineboy | undefined;
 
   debugModules: Debug | undefined;
 
@@ -118,9 +119,9 @@ export default class Game extends Observer<GameChannel, GameEvent> {
     this.palyer = new Spineboy(
       this,
       this.assets,
-      config.palyer.startX,
+      PLAYER.startX,
       MAP[0].nY + Wall.offsetY,
-      config.palyer.scale
+      PLAYER.scale
     );
 
     this.interactive = new Interactive(this);

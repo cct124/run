@@ -1,4 +1,4 @@
-import { config } from "@/config";
+import { config, MapPoolOpt } from "@/config";
 import { GameMap } from "@/config/map";
 import Matter from "matter-js";
 import * as PIXI from "pixi.js";
@@ -56,10 +56,7 @@ export default class Walls extends PIXI.Container {
     this.assets = assets;
     this.scroller = scroller;
     // 生成对象池
-    this.wallPool = new WallsPool(
-      [0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-      this.assets
-    );
+    this.wallPool = new WallsPool(MapPoolOpt.pools, this.assets);
     this.createWalls();
     container.addChild(this);
   }

@@ -6,6 +6,7 @@ import DebugWalls from "./DebugWalls";
 import Module from "./module";
 import DebugMatter from "./DebugMatter";
 import PhysicsEngine from "../physics/PhysicsEngine";
+import Spineboy from "../player/Spineboy";
 
 export enum Modules {
   /**
@@ -21,7 +22,7 @@ export enum Modules {
 export default class Debug {
   game: Game;
   scroller: Scroller;
-  player: Player;
+  player: Spineboy;
   examples: {
     [Modules.MatterTool]?: Module;
     [Modules.WallCollisionLine]?: Module;
@@ -35,7 +36,7 @@ export default class Debug {
   constructor(
     game: Game,
     scroller: Scroller,
-    player: Player,
+    player: Spineboy,
     physicsEngine: PhysicsEngine
   ) {
     this.game = game;

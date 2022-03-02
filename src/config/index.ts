@@ -19,73 +19,6 @@ export interface Config {
    * 墙体默认高度
    */
   wallDefY: number;
-  /**
-   * 玩家
-   */
-  palyer: {
-    /**
-     * 玩家开始X位置
-     */
-    startX: number;
-    /**
-     * 玩家大小
-     */
-    scale: number;
-    /**
-     * 玩家运动速度
-     */
-    speed: {
-      /**
-       * 行走
-       */
-      walk: number;
-      /**
-       * 奔跑
-       */
-      run: number;
-    };
-  };
-  /**
-   * 操控杆配置
-   */
-  joystick: {
-    /**
-     * 操控杆X位置
-     */
-    x: number;
-    /**
-     * 操控杆Y位置
-     */
-    y: number;
-    /**
-     * 是否可操控
-     */
-    interactive: boolean;
-    /**
-     * 操控杆可拖拽区域
-     */
-    dragArea: {
-      size: number;
-      alpha: number;
-    };
-    /**
-     * 操控杆可拖拽限制区域
-     */
-    limitArea: {
-      color: number;
-      size: number;
-      alpha: number;
-    };
-    /**
-     * 操控杆可拖拽目标
-     */
-    dragTarget: {
-      color: number;
-      size: number;
-      alpha: number;
-      targetAlpha: number;
-    };
-  };
 }
 
 export interface AssetsIter {
@@ -124,34 +57,6 @@ export const config: Config = {
   wallItemWidth: 64,
   wallItemHeight: 256,
   wallDefY: 200,
-  palyer: {
-    startX: 150,
-    scale: 0.2,
-    speed: {
-      walk: 5,
-      run: 10,
-    },
-  },
-  joystick: {
-    x: 100,
-    y: 270,
-    interactive: true,
-    dragArea: {
-      size: 250,
-      alpha: 0.05,
-    },
-    limitArea: {
-      color: 0xffffff,
-      size: 45,
-      alpha: 0.05,
-    },
-    dragTarget: {
-      color: 0xffffff,
-      size: 25,
-      alpha: 0.06,
-      targetAlpha: 0.1,
-    },
-  },
 };
 
 /**
@@ -240,4 +145,8 @@ export interface Physics {
 export const PHYSICS: Physics = {
   AG: 9.81,
   RHO: 1.22,
+};
+
+export const MapPoolOpt = {
+  pools: [0, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16],
 };
