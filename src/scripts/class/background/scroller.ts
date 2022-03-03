@@ -82,4 +82,12 @@ export default class Scroller {
   update(dt: number): void {
     this.moveViewportXBy(this.viewportSpeed);
   }
+
+  /**
+   * 重置视口位置
+   */
+  reset(): void {
+    this.walls.clear();
+    this.setViewportX(0);
+  }
 }

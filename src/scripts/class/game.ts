@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as PIXI from "pixi.js";
 import { Assets, AssetsIter, config } from "@/config";
 import Scroller from "@/scripts/class/background/scroller";
@@ -20,6 +21,14 @@ export enum GameChannel {
    * 游戏初始化完成
    */
   init = "init",
+  /**
+   * 游戏结束
+   */
+  gameover = "gameover",
+  /**
+   * 得分变化
+   */
+  scoreChange = "score_change",
 }
 
 export interface GameEvent {
@@ -65,6 +74,16 @@ export default class Game extends Observer<GameChannel, GameEvent> {
 
   physicsEngine: PhysicsEngine | undefined;
   interactive: Interactive | undefined;
+
+  /**
+   * 游戏结束
+   */
+  gameover = false;
+
+  /**
+   * 得分
+   */
+  score = 0;
 
   constructor({
     view,
@@ -113,7 +132,7 @@ export default class Game extends Observer<GameChannel, GameEvent> {
     // log("loader assets complete", loader);
     // 保存资源
     this.assets = loader;
-    this.physicsEngine = new PhysicsEngine();
+    this.physicsEngine = new PhysicsEngine(this);
     // 背景视差滚动
     this.scroller = new Scroller(this, this.app, this.assets);
     this.palyer = new Spineboy(
@@ -137,9 +156,41 @@ export default class Game extends Observer<GameChannel, GameEvent> {
         this.physicsEngine
       );
 
+    this.app.ticker.add(() => {
+      this.setScore(this.scroller!);
+    });
+
     this.send(GameChannel.init, {
       event: GameChannel.init,
       target: this,
     });
+  }
+
+  sendGameoverEvent(): boolean {
+    if (!this.gameover) {
+      this.gameover = true;
+      this.send(GameChannel.gameover, {
+        event: GameChannel.gameover,
+        target: this,
+      });
+    }
+    return this.gameover;
+  }
+
+  setScore(scroller: Scroller): void {
+    const score = Math.round(scroller.viewportX * config.score.viewportX);
+    if (this.score !== score) {
+      this.score = score;
+      this.send(GameChannel.scoreChange, {
+        event: GameChannel.scoreChange,
+        target: this,
+      });
+    }
+  }
+
+  restart(): void {
+    this.scroller!.reset();
+    this.palyer!.reset();
+    this.gameover = false;
   }
 }

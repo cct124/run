@@ -156,19 +156,33 @@ export default class Walls extends PIXI.Container {
       if (this.wallMap.has(i)) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const wall = this.wallMap.get(i)!;
-        wall.sprites.forEach((sprite) => {
-          this.wallPool.add(sprite.mapType, sprite);
-        });
-        this.removeChild(wall.container);
-        wall.sprites = [];
-        wall.clear();
-        if (this.scroller.game.physicsEngine && wall.body)
-          Matter.Composite.remove(
-            this.scroller.game.physicsEngine.world,
-            wall.body
-          );
+        this.clearWall(wall);
         this.wallMap.delete(i);
       }
     }
+  }
+
+  clearWall(wall: Wall): void {
+    wall.sprites.forEach((sprite) => {
+      this.wallPool.add(sprite.mapType, sprite);
+    });
+    this.removeChild(wall.container);
+    wall.sprites = [];
+    wall.clear();
+    if (this.scroller.game.physicsEngine && wall.body)
+      Matter.Composite.remove(
+        this.scroller.game.physicsEngine.world,
+        wall.body
+      );
+  }
+
+  /**
+   * 清除所有墙体
+   */
+  clear(): void {
+    this.wallMap.forEach((wall) => {
+      this.clearWall(wall);
+    });
+    this.wallMap.clear();
   }
 }

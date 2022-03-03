@@ -46,8 +46,8 @@ export default class Interactive extends PIXI.Container {
     this.opt = deepMixins(
       {
         joystick: {
-          x: JOY_OPT.x,
-          y: JOY_OPT.y,
+          x: JOY_OPT.x * game.app.view.width,
+          y: JOY_OPT.y * game.app.view.height,
           speed: {
             walk: PLAYER.speed.walk,
             run: PLAYER.speed.run,
@@ -102,7 +102,7 @@ export default class Interactive extends PIXI.Container {
       }
     });
     this.game.app.ticker.add(() => {
-      this.move();
+      if (!this.game.gameover) this.move();
     });
   }
   /**
@@ -201,21 +201,12 @@ export default class Interactive extends PIXI.Container {
    * 根据角色状态移动角色
    */
   move(): void {
-    // console.log(this.palyer.body.velocity);
-    // console.log(Math.abs(this.palyer.body.velocity.y));
-
     if (
       this.joystick.dragTargetData.areaType === DRAG_AREA.L &&
       !this.palyer.status.collision &&
       !this.palyer.status.jump &&
       this.palyer.status.groundContact
     ) {
-      // console.log(
-      //   this.palyer.status.idle,
-      //   this.palyer.status.walk,
-      //   this.palyer.status.run
-      // );
-
       if (!this.palyer.status.idle) {
         if (this.palyer.status.walk) {
           this.game.scroller!.moveViewportXBy(this.opt.joystick!.speed!.walk!);
@@ -238,6 +229,8 @@ export default class Interactive extends PIXI.Container {
       }
     }
     // this.game.scroller!.moveViewportXBy(this.palyer.body.velocity.x);
+
+    if (this.palyer.status.comeDown) this.game.sendGameoverEvent();
   }
 
   /**

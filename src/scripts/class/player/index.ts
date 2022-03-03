@@ -106,7 +106,7 @@ export default class Player<T, E> extends PIXIContainerObserver<T, E> {
    * 创建物理引擎刚体
    */
   createBody(): Matter.Body {
-    const body = Matter.Bodies.rectangle(this.x, this.y, 5, 5, {
+    const body = Matter.Bodies.rectangle(this.x, this.y, 10, 10, {
       frictionAir: PLAYER.frictionAir,
       friction: 0,
       label: BodyType.Player,

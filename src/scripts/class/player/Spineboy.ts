@@ -92,19 +92,37 @@ export interface SpineboyEvent {
   target: Spineboy;
 }
 
+export interface SpineboyStatus {
+  walk: boolean;
+  run: boolean;
+  idle: boolean;
+  jump: boolean;
+  collision: boolean;
+  groundContact: boolean;
+  comeDown: boolean;
+  speed: {
+    x: number;
+    y: number;
+  };
+}
+
 export default class Spineboy extends Player<SpineboyChannel, SpineboyEvent> {
-  status = {
+  statusOptions: SpineboyStatus = {
     walk: false,
     run: false,
-    idle: true,
+    idle: false,
     jump: false,
     collision: false,
     groundContact: false,
+    comeDown: false,
     speed: {
       x: 0,
       y: 0,
     },
   };
+
+  status: SpineboyStatus = this.getStatusOptions();
+
   curAnimation: PlayerAnimations | undefined;
   previAnimation: PlayerAnimations | undefined;
   opt: SpineboyOptions;
@@ -240,6 +258,7 @@ export default class Spineboy extends Player<SpineboyChannel, SpineboyEvent> {
     //   },
     // };
     this.setCurAnimation(PlayerAnimations.idle);
+    this.idle();
     return this.addAnimation(0, PlayerAnimations.idle, true, 0);
   }
 
@@ -258,6 +277,7 @@ export default class Spineboy extends Player<SpineboyChannel, SpineboyEvent> {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update(dt: number): void {
+    if (this.game.gameover) return;
     const { x: x1, y: y1 } = this.body.vertices[2];
     const { x: x2, y: y2 } = this.body.vertices[3];
     if (this.status.jump) {
@@ -266,11 +286,11 @@ export default class Spineboy extends Player<SpineboyChannel, SpineboyEvent> {
     } else {
       this.y = y2 - (y2 - y1) / 2;
     }
+    Matter.Body.setAngle(this.body, 0);
     // this.x = x2 - (x2 - x1) / 2;
     // this.rotation = this.body.angle;
-    // Matter.Body.setAngle(this.body, 0);
     Matter.Body.setPosition(this.body, {
-      x: this.x,
+      x: this.nx,
       y: this.body.position.y,
     });
 
@@ -296,11 +316,32 @@ export default class Spineboy extends Player<SpineboyChannel, SpineboyEvent> {
     } else {
       this.status.groundContact = false;
     }
+    this.status.comeDown = this.y - this.height > this.game.app.view.height;
   }
 
   setCurAnimation(name: PlayerAnimations): PlayerAnimations {
     this.previAnimation = this.curAnimation;
     this.curAnimation = name;
     return this.curAnimation;
+  }
+
+  getStatusOptions(): SpineboyStatus {
+    return JSON.parse(JSON.stringify(this.statusOptions));
+  }
+  /**
+   * 重置角色
+   */
+  reset(): void {
+    this.status = this.getStatusOptions();
+    this.x = this.nx;
+    this.y = this.nx;
+    Matter.Body.setPosition(this.body, {
+      x: this.x,
+      y: this.y,
+    });
+    Matter.Body.setVelocity(this.body, {
+      x: 0,
+      y: 0,
+    });
   }
 }

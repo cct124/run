@@ -19,6 +19,16 @@ export interface Config {
    * 墙体默认高度
    */
   wallDefY: number;
+
+  /**
+   * 得分系数
+   */
+  score: {
+    /**
+     * 奔跑距离
+     */
+    viewportX: number;
+  };
 }
 
 export interface AssetsIter {
@@ -35,7 +45,7 @@ export interface Assets {
 }
 
 export const config: Config = {
-  debug: true,
+  debug: false,
   assets: {
     far: {
       name: "far",
@@ -57,6 +67,9 @@ export const config: Config = {
   wallItemWidth: 64,
   wallItemHeight: 256,
   wallDefY: 200,
+  score: {
+    viewportX: 0.1,
+  },
 };
 
 /**
@@ -150,3 +163,11 @@ export const PHYSICS: Physics = {
 export const MapPoolOpt = {
   pools: [0, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16],
 };
+
+/**
+ * 环境变量
+ */
+export enum ENV {
+  beta = "beta",
+  prod = "prod",
+}
