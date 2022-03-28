@@ -41,6 +41,12 @@ export default class Interactive extends PIXI.Container {
     idle: false,
     jump: false,
   };
+
+  /**
+   * 交互控制
+   * @param game
+   * @param options
+   */
   constructor(game: Game, options?: InteractiveOptions) {
     super();
     this.opt = deepMixins(

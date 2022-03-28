@@ -23,6 +23,14 @@ export default class Scroller {
   container = new PIXI.Container();
   game: Game;
   units = 0;
+
+  /**
+   * 视差滚动
+   * @param game
+   * @param app
+   * @param assets
+   * @param viewportSpeed
+   */
   constructor(
     game: Game,
     app: PIXI.Application,

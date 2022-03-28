@@ -128,6 +128,15 @@ export default class Spineboy extends Player<SpineboyChannel, SpineboyEvent> {
   previAnimation: PlayerAnimations | undefined;
   opt: SpineboyOptions;
   hit: IBone;
+  /**
+   * 玩家角色
+   * @param game
+   * @param loader
+   * @param x
+   * @param y
+   * @param scale
+   * @param options
+   */
   constructor(
     game: Game,
     loader: PIXI.Loader,

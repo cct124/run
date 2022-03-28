@@ -6,6 +6,9 @@ export enum BodyType {
   Player = "Player",
 }
 
+/**
+ * 物理引擎
+ */
 export default class PhysicsEngine {
   engine: Matter.Engine;
   world: Matter.World;
@@ -13,6 +16,10 @@ export default class PhysicsEngine {
   detector: Matter.Detector;
   matterRunner: Matter.Runner;
   game: Game;
+  /**
+   * 物理引擎
+   * @param game 游戏类
+   */
   constructor(game: Game) {
     this.engine = Matter.Engine.create();
     this.world = this.engine.world;
