@@ -101,10 +101,10 @@ export default class Game extends Observer<GameChannel, GameEvent> {
     this.width = width;
     this.height = height;
     this.app = new PIXI.Application({
-      width,
-      height,
-      view,
-      backgroundColor: 0xf1f3f4,
+      width, // 舞台宽度
+      height, // 舞台高度
+      view, // HTMLCanvasElement DOM对象
+      backgroundColor: 0xf1f3f4, // 舞台背景色
     });
     // 资源加载完成事件监听
     this.loader.onComplete.add((loader) => {

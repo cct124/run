@@ -3,19 +3,6 @@
     <van-button class="play-game" type="primary" @click="play">
       PLAY
     </van-button>
-    <!-- <div class="mar-t-10">
-      <van-button
-        class="fullscreen mar-r-10"
-        plain
-        type="primary"
-        @click="fullscreen"
-      >
-        Fullscreen
-      </van-button>
-      <van-button class="landscape" plain type="success" @click="landscape">
-        Landscape
-      </van-button>
-    </div> -->
   </div>
 </template>
 
@@ -43,19 +30,24 @@ export default class Play extends Vue {
       .lock(oppositeOrientation as unknown as OrientationLockType)
       .then(() => {
         console.log(`Locked to ${oppositeOrientation}`);
-        setTimeout(() => {
-          if (screen.orientation.type.startsWith(this.orieType.landscape)) {
-            this.$emit("play");
-          }
-        }, 500);
+        this.setLandscape();
       })
       .catch((error) => {
-        console.log(error);
+        // console.log(error);
+        this.setLandscape();
       });
   }
 
   private fullscreen() {
     document.documentElement.requestFullscreen();
+  }
+
+  private setLandscape() {
+    setTimeout(() => {
+      if (screen.orientation.type.startsWith(this.orieType.landscape)) {
+        this.$emit("play");
+      }
+    }, 500);
   }
 
   private play() {
@@ -66,6 +58,7 @@ export default class Play extends Vue {
 </script>
 <style lang="scss" scoped>
 .play {
+  position: fixed;
   background-color: #3b5b66;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
-  <div class="gameover w-100vw h-100vh flex-center flex-column">
-    <h1>GAME OVER</h1>
+  <Mask class="gameover flex-center flex-column" v-if="mask">
+    <h1>GAME OVER !!</h1>
     <van-button
       class="restart"
       color="#7232dd"
@@ -9,30 +9,36 @@
     >
       重新开始
     </van-button>
-  </div>
+  </Mask>
 </template>
 
 <script lang="ts">
 import { Options, Vue } from "vue-class-component";
 import { Button } from "vant";
+import Mask from "../mask/index.vue";
 
 @Options({
   components: {
     [Button.name]: Button,
+    Mask,
   },
 })
-export default class Gameover extends Vue {}
+export default class Gameover extends Vue {
+  mask = false;
+  open(): void {
+    this.mask = true;
+  }
+
+  close(): void {
+    this.mask = false;
+  }
+}
 </script>
 <style lang="scss" scoped>
 .gameover {
-  z-index: 2;
   h1 {
     color: #e4e4e4;
     filter: drop-shadow(3px 8px 0px black);
   }
-  position: fixed;
-  top: 0;
-  left: 0;
-  background-color: rgba(6, 45, 59, 0.8);
 }
 </style>

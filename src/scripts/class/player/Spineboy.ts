@@ -5,6 +5,7 @@ import Game from "../game";
 import { IBone, ITrackEntry } from "pixi-spine";
 import Matter from "matter-js";
 import { deepMixins } from "@/scripts/utils";
+import { PLAYER } from "@/config/palyer";
 
 enum Single {
   aim = "aim",
@@ -214,7 +215,7 @@ export default class Spineboy extends Player<SpineboyChannel, SpineboyEvent> {
       event: SpineboyChannel.jumpStart,
       target: this,
     });
-    jumpITrackEntry.timeScale = 1.4;
+    jumpITrackEntry.timeScale = PLAYER.jump.timeScale;
     this.curAnimation = PlayerAnimations.idle;
     const idleITrackEntry = this.addAnimation(
       0,
@@ -224,7 +225,7 @@ export default class Spineboy extends Player<SpineboyChannel, SpineboyEvent> {
     );
     Matter.Body.setVelocity(this.body, {
       x: 0,
-      y: -8,
+      y: PLAYER.jump.jumpY,
     });
     idleITrackEntry.listener = {
       start: () => {

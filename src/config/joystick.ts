@@ -58,7 +58,7 @@ export enum DRAG_AREA {
  * 操控杆配置
  */
 export const JOY_OPT: JoystickOptions = {
-  x: 0.16,
+  x: 0.12,
   y: 0.72,
   interactive: true,
   dragArea: {

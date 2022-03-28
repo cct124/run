@@ -5,6 +5,9 @@ import store from "./store";
 import Print from "@/scripts/utils/print";
 import "normalize.css";
 import "@/styles/index.scss";
+import eruda from "eruda";
+
+eruda.init();
 
 const print = new Print();
 window.log = print.log;

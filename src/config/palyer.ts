@@ -36,6 +36,8 @@ export interface PalyerOptions {
      * 奔跑时
      */
     run: number;
+    jumpY: number;
+    timeScale: number;
   };
   /**
    * 空气阻力
@@ -61,11 +63,19 @@ export const PLAYER: PalyerOptions = {
     /**
      * 行走时
      */
-    walk: 2,
+    walk: 3,
     /**
      * 奔跑时
      */
     run: 4,
+    /**
+     * 跳跃高度
+     */
+    jumpY: -8.5,
+    /**
+     * 跳跃动画时间
+     */
+    timeScale: 1.35,
   },
   frictionAir: 0,
 };
