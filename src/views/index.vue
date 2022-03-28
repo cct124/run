@@ -20,9 +20,9 @@ import Play from "@/components/game/play/index.vue";
 import Score from "@/components/game/score/index.vue";
 import Gameover from "@/components/game/gameover/index.vue";
 import GameContainer from "@/components/game/container/index.vue";
-import { Adaptation } from "@/scripts/utils/adaptation";
+// import { Adaptation } from "@/scripts/utils/adaptation";
 import { config, ENV } from "../config";
-import * as PIXI from "pixi.js";
+// import * as PIXI from "pixi.js";
 @Options({
   components: {
     Tool,
@@ -51,10 +51,7 @@ export default class GameComponent extends Vue {
       this.initGame();
     }
     document.documentElement.addEventListener("fullscreenchange", () => {
-      console.log("fullscreenchange");
       document.documentElement.requestFullscreen();
-
-      // if (this.init) window.close();
     });
   }
 
@@ -74,11 +71,12 @@ export default class GameComponent extends Vue {
       (this.$refs.gameover as Gameover).open();
       target.app.stop();
 
-      let renderTexture = new (PIXI.RenderTexture as any).create({
-        width: target.app.view.width,
-        height: target.app.view.height,
-      });
-      target.app.renderer.render(target.app.stage, renderTexture);
+      // 截图
+      // let renderTexture = new (PIXI.RenderTexture as any).create({
+      //   width: target.app.view.width,
+      //   height: target.app.view.height,
+      // });
+      // target.app.renderer.render(target.app.stage, renderTexture);
       // 输出截图
       // console.log(target.app.renderer.plugins.extract.base64(renderTexture));
     });
@@ -94,22 +92,25 @@ export default class GameComponent extends Vue {
   /**
    * 适配
    */
-  private adaptation(container: HTMLElement, target: HTMLElement) {
-    // console.log(container.offsetWidth, container.offsetHeight);
+  // private adaptation(container: HTMLElement, target: HTMLElement) {
+  //   // console.log(container.offsetWidth, container.offsetHeight);
 
-    const adaptation = new Adaptation(
-      {
-        width: container.offsetWidth,
-        height: container.offsetHeight,
-      },
-      {
-        width: target.offsetWidth,
-        height: target.offsetHeight,
-      }
-    );
-    target.style.transform = `scale(${adaptation.trw})`;
-  }
+  //   const adaptation = new Adaptation(
+  //     {
+  //       width: container.offsetWidth,
+  //       height: container.offsetHeight,
+  //     },
+  //     {
+  //       width: target.offsetWidth,
+  //       height: target.offsetHeight,
+  //     }
+  //   );
+  //   target.style.transform = `scale(${adaptation.trw})`;
+  // }
 
+  /**
+   * 重置游戏
+   */
   private restart() {
     this.game!.app.start();
     this.game!.restart();
